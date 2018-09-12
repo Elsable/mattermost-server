@@ -248,7 +248,7 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	groupUserIds = append(groupUserIds, user2.Id)
 	groupUserIds = append(groupUserIds, th.BasicUser.Id)
 
-	if channel, err := th.App.CreateGroupChannel(groupUserIds, th.BasicUser.Id); err != nil {
+	if channel, err := th.App.CreateGroupTypeChannel(groupUserIds, th.BasicUser.Id); err != nil {
 		t.Fatal("Failed to create group channel. Error: " + err.Message)
 	} else {
 		// there should be a ChannelMemberHistory record for each user

@@ -68,7 +68,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	user1 := th.CreateUser()
 	user2 := th.CreateUser()
 
-	groupChannel := th.CreateGroupChannel(user1, user2)
+	groupChannel := th.CreateGroupTypeChannel(user1, user2)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },

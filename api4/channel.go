@@ -13,7 +13,7 @@ import (
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.ApiSessionRequired(createChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/direct", api.ApiSessionRequired(createDirectChannel)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/group", api.ApiSessionRequired(createGroupChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/group", api.ApiSessionRequired(createGroupTypeChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.ApiSessionRequired(viewChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.ApiSessionRequired(updateChannelScheme)).Methods("PUT")
 
@@ -349,7 +349,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(sc.ToJson()))
 }
 
-func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+func createGroupTypeChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIds := model.ArrayFromJson(r.Body)
 
 	if len(userIds) == 0 {
@@ -377,7 +377,7 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupChannel, err := c.App.CreateGroupChannel(userIds, c.Session.UserId)
+	groupChannel, err := c.App.CreateGroupTypeChannel(userIds, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return

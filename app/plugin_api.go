@@ -234,7 +234,7 @@ func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel,
 }
 
 func (api *PluginAPI) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
-	return api.app.CreateGroupChannel(userIds, "")
+	return api.app.CreateGroupTypeChannel(userIds, "")
 }
 
 func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {

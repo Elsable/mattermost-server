@@ -1933,7 +1933,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	if channel, err := th.App.createGroupChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
+	if channel, err := th.App.createGroupTypeChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
 	} else {
 		if channel.Header != *data.Header {
@@ -2178,7 +2178,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	if channel, err := th.App.createGroupChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
+	if channel, err := th.App.createGroupTypeChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
 	} else {
 		groupChannel = channel

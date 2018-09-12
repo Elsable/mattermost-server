@@ -29,6 +29,7 @@ type LayeredStore struct {
 	LocalCacheLayer *LocalCacheSupplier
 	RedisLayer      *RedisSupplier
 	LayerChainHead  LayeredStoreSupplier
+	GroupStore      GroupStore
 }
 
 func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) Store {
@@ -41,6 +42,7 @@ func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsIn
 	store.ReactionStore = &LayeredReactionStore{store}
 	store.RoleStore = &LayeredRoleStore{store}
 	store.SchemeStore = &LayeredSchemeStore{store}
+	store.GroupStore = &LayeredGroupStore{store}
 
 	// Setup the chain
 	if ENABLE_EXPERIMENTAL_REDIS {
@@ -171,6 +173,10 @@ func (s *LayeredStore) Role() RoleStore {
 
 func (s *LayeredStore) Scheme() SchemeStore {
 	return s.SchemeStore
+}
+
+func (s *LayeredStore) Group() GroupStore {
+	return s.GroupStore
 }
 
 func (s *LayeredStore) MarkSystemRanUnitTests() {
@@ -316,5 +322,93 @@ func (s *LayeredSchemeStore) GetAllPage(scope string, offset int, limit int) Sto
 func (s *LayeredSchemeStore) PermanentDeleteAll() StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.SchemePermanentDeleteAll(s.TmpContext)
+	})
+}
+
+type LayeredGroupStore struct {
+	*LayeredStore
+}
+
+func (s *LayeredGroupStore) Save(group *model.Group) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupSave(s.TmpContext, group)
+	})
+}
+
+func (s *LayeredGroupStore) Get(groupId string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGet(s.TmpContext, groupId)
+	})
+}
+
+func (s *LayeredGroupStore) GetAllPage(offset int, limit int) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetAllPage(s.TmpContext, offset, limit)
+	})
+}
+
+func (s *LayeredGroupStore) Delete(groupId string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupDelete(s.TmpContext, groupId)
+	})
+}
+
+func (s *LayeredGroupStore) CreateMember(groupID string, userID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupCreateMember(s.TmpContext, groupID, userID)
+	})
+}
+
+func (s *LayeredGroupStore) DeleteMember(groupID string, userID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupDeleteMember(s.TmpContext, groupID, userID)
+	})
+}
+
+func (s *LayeredGroupStore) GetGroupTeam(groupID string, teamID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetGroupTeam(s.TmpContext, groupID, teamID)
+	})
+}
+
+func (s *LayeredGroupStore) GetAllGroupTeamsByGroupPage(groupID string, offset int, limit int) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetAllGroupTeamsByGroupPage(s.TmpContext, groupID, offset, limit)
+	})
+}
+
+func (s *LayeredGroupStore) SaveGroupTeam(groupTeam *model.GroupTeam) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupSaveGroupTeam(s.TmpContext, groupTeam)
+	})
+}
+
+func (s *LayeredGroupStore) DeleteGroupTeam(groupID string, teamID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupDeleteGroupTeam(s.TmpContext, groupID, teamID)
+	})
+}
+
+func (s *LayeredGroupStore) GetGroupChannel(groupID string, channelID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetGroupChannel(s.TmpContext, groupID, channelID)
+	})
+}
+
+func (s *LayeredGroupStore) GetAllGroupChannelsByGroupPage(groupID string, offset int, limit int) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetAllGroupChannelsByGroupPage(s.TmpContext, groupID, offset, limit)
+	})
+}
+
+func (s *LayeredGroupStore) SaveGroupChannel(groupChannel *model.GroupChannel) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupSaveGroupChannel(s.TmpContext, groupChannel)
+	})
+}
+
+func (s *LayeredGroupStore) DeleteGroupChannel(groupID string, channelID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupDeleteGroupChannel(s.TmpContext, groupID, channelID)
 	})
 }

@@ -69,7 +69,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 	user2 := th.CreateUser()
 	user3 := th.CreateUser()
 
-	groupChannel := th.CreateGroupChannel(user1, user2)
+	groupChannel := th.CreateGroupTypeChannel(user1, user2)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
