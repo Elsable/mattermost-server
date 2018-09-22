@@ -529,13 +529,8 @@ type GroupStore interface {
 	CreateMember(groupID string, userID string) StoreChannel
 	DeleteMember(groupID string, userID string) StoreChannel
 
-	GetGroupTeam(groupID string, teamID string) StoreChannel
-	GetAllGroupTeamsByGroupPage(groupID string, offset int, limit int) StoreChannel
-	SaveGroupTeam(groupTeam *model.GroupTeam) StoreChannel
-	DeleteGroupTeam(groupID string, teamID string) StoreChannel
-
-	GetGroupChannel(groupID string, channelID string) StoreChannel
-	GetAllGroupChannelsByGroupPage(groupID string, offset int, limit int) StoreChannel
-	SaveGroupChannel(groupTeam *model.GroupChannel) StoreChannel
-	DeleteGroupChannel(groupID string, channelID string) StoreChannel
+	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
+	GetAllGroupSyncablesByGroupPage(groupID string, syncableType model.GroupSyncableType, offset int, limit int) StoreChannel
+	SaveGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
+	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
 }

@@ -39,42 +39,22 @@ func (s *RedisSupplier) GroupDeleteMember(ctx context.Context, groupID string, u
 	return s.Next().GroupDeleteMember(ctx, groupID, userID, hints...)
 }
 
-func (s *RedisSupplier) GroupGetGroupTeam(ctx context.Context, groupID string, teamID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) GroupGetGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().GroupGetGroupTeam(ctx, groupID, teamID, hints...)
+	return s.Next().GroupGetGroupSyncable(ctx, groupID, syncableID, syncableType, hints...)
 }
 
-func (s *RedisSupplier) GroupGetAllGroupTeamsByGroupPage(ctx context.Context, groupID string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, groupID string, syncableType model.GroupSyncableType, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().GroupGetAllGroupTeamsByGroupPage(ctx, groupID, offset, limit, hints...)
+	return s.Next().GroupGetAllGroupSyncablesByGroupPage(ctx, groupID, syncableType, offset, limit, hints...)
 }
 
-func (s *RedisSupplier) GroupSaveGroupTeam(ctx context.Context, groupTeam *model.GroupTeam, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) GroupSaveGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().GroupSaveGroupTeam(ctx, groupTeam, hints...)
+	return s.Next().GroupSaveGroupSyncable(ctx, groupSyncable, hints...)
 }
 
-func (s *RedisSupplier) GroupDeleteGroupTeam(ctx context.Context, groupID string, teamID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().GroupDeleteGroupTeam(ctx, groupID, teamID, hints...)
-}
-
-func (s *RedisSupplier) GroupGetGroupChannel(ctx context.Context, groupID string, channelID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// TODO: Redis caching.
-	return s.Next().GroupGetGroupChannel(ctx, groupID, channelID, hints...)
-}
-
-func (s *RedisSupplier) GroupGetAllGroupChannelsByGroupPage(ctx context.Context, groupID string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// TODO: Redis caching.
-	return s.Next().GroupGetAllGroupChannelsByGroupPage(ctx, groupID, offset, limit, hints...)
-}
-
-func (s *RedisSupplier) GroupSaveGroupChannel(ctx context.Context, groupChannel *model.GroupChannel, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// TODO: Redis caching.
-	return s.Next().GroupSaveGroupChannel(ctx, groupChannel, hints...)
-}
-
-func (s *RedisSupplier) GroupDeleteGroupChannel(ctx context.Context, groupID string, channelID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// TODO: Redis caching.
-	return s.Next().GroupDeleteGroupChannel(ctx, groupID, channelID, hints...)
+	return s.Next().GroupDeleteGroupSyncable(ctx, groupID, syncableID, syncableType, hints...)
 }

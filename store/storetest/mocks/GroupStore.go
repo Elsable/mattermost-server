@@ -45,29 +45,13 @@ func (_m *GroupStore) Delete(groupID string) store.StoreChannel {
 	return r0
 }
 
-// DeleteGroupChannel provides a mock function with given fields: groupID, channelID
-func (_m *GroupStore) DeleteGroupChannel(groupID string, channelID string) store.StoreChannel {
-	ret := _m.Called(groupID, channelID)
+// DeleteGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
+func (_m *GroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) store.StoreChannel {
+	ret := _m.Called(groupID, syncableID, syncableType)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
-		r0 = rf(groupID, channelID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
-// DeleteGroupTeam provides a mock function with given fields: groupID, teamID
-func (_m *GroupStore) DeleteGroupTeam(groupID string, teamID string) store.StoreChannel {
-	ret := _m.Called(groupID, teamID)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
-		r0 = rf(groupID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) store.StoreChannel); ok {
+		r0 = rf(groupID, syncableID, syncableType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -109,29 +93,13 @@ func (_m *GroupStore) Get(groupID string) store.StoreChannel {
 	return r0
 }
 
-// GetAllGroupChannelsByGroupPage provides a mock function with given fields: groupID, offset, limit
-func (_m *GroupStore) GetAllGroupChannelsByGroupPage(groupID string, offset int, limit int) store.StoreChannel {
-	ret := _m.Called(groupID, offset, limit)
+// GetAllGroupSyncablesByGroupPage provides a mock function with given fields: groupID, syncableType, offset, limit
+func (_m *GroupStore) GetAllGroupSyncablesByGroupPage(groupID string, syncableType model.GroupSyncableType, offset int, limit int) store.StoreChannel {
+	ret := _m.Called(groupID, syncableType, offset, limit)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
-		r0 = rf(groupID, offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
-// GetAllGroupTeamsByGroupPage provides a mock function with given fields: groupID, offset, limit
-func (_m *GroupStore) GetAllGroupTeamsByGroupPage(groupID string, offset int, limit int) store.StoreChannel {
-	ret := _m.Called(groupID, offset, limit)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
-		r0 = rf(groupID, offset, limit)
+	if rf, ok := ret.Get(0).(func(string, model.GroupSyncableType, int, int) store.StoreChannel); ok {
+		r0 = rf(groupID, syncableType, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -157,29 +125,13 @@ func (_m *GroupStore) GetAllPage(offset int, limit int) store.StoreChannel {
 	return r0
 }
 
-// GetGroupChannel provides a mock function with given fields: groupID, channelID
-func (_m *GroupStore) GetGroupChannel(groupID string, channelID string) store.StoreChannel {
-	ret := _m.Called(groupID, channelID)
+// GetGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
+func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) store.StoreChannel {
+	ret := _m.Called(groupID, syncableID, syncableType)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
-		r0 = rf(groupID, channelID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
-// GetGroupTeam provides a mock function with given fields: groupID, teamID
-func (_m *GroupStore) GetGroupTeam(groupID string, teamID string) store.StoreChannel {
-	ret := _m.Called(groupID, teamID)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
-		r0 = rf(groupID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) store.StoreChannel); ok {
+		r0 = rf(groupID, syncableID, syncableType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -205,29 +157,13 @@ func (_m *GroupStore) Save(group *model.Group) store.StoreChannel {
 	return r0
 }
 
-// SaveGroupChannel provides a mock function with given fields: groupTeam
-func (_m *GroupStore) SaveGroupChannel(groupTeam *model.GroupChannel) store.StoreChannel {
-	ret := _m.Called(groupTeam)
+// SaveGroupSyncable provides a mock function with given fields: groupSyncable
+func (_m *GroupStore) SaveGroupSyncable(groupSyncable *model.GroupSyncable) store.StoreChannel {
+	ret := _m.Called(groupSyncable)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.GroupChannel) store.StoreChannel); ok {
-		r0 = rf(groupTeam)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
-// SaveGroupTeam provides a mock function with given fields: groupTeam
-func (_m *GroupStore) SaveGroupTeam(groupTeam *model.GroupTeam) store.StoreChannel {
-	ret := _m.Called(groupTeam)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.GroupTeam) store.StoreChannel); ok {
-		r0 = rf(groupTeam)
+	if rf, ok := ret.Get(0).(func(*model.GroupSyncable) store.StoreChannel); ok {
+		r0 = rf(groupSyncable)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

@@ -365,50 +365,25 @@ func (s *LayeredGroupStore) DeleteMember(groupID string, userID string) StoreCha
 	})
 }
 
-func (s *LayeredGroupStore) GetGroupTeam(groupID string, teamID string) StoreChannel {
+func (s *LayeredGroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupGetGroupTeam(s.TmpContext, groupID, teamID)
+		return supplier.GroupGetGroupSyncable(s.TmpContext, groupID, syncableID, syncableType)
 	})
 }
 
-func (s *LayeredGroupStore) GetAllGroupTeamsByGroupPage(groupID string, offset int, limit int) StoreChannel {
+func (s *LayeredGroupStore) GetAllGroupSyncablesByGroupPage(groupID string, syncableType model.GroupSyncableType, offset int, limit int) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupGetAllGroupTeamsByGroupPage(s.TmpContext, groupID, offset, limit)
+		return supplier.GroupGetAllGroupSyncablesByGroupPage(s.TmpContext, groupID, syncableType, offset, limit)
 	})
 }
 
-func (s *LayeredGroupStore) SaveGroupTeam(groupTeam *model.GroupTeam) StoreChannel {
+func (s *LayeredGroupStore) SaveGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupSaveGroupTeam(s.TmpContext, groupTeam)
+		return supplier.GroupSaveGroupSyncable(s.TmpContext, groupSyncable)
 	})
 }
-
-func (s *LayeredGroupStore) DeleteGroupTeam(groupID string, teamID string) StoreChannel {
+func (s *LayeredGroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupDeleteGroupTeam(s.TmpContext, groupID, teamID)
-	})
-}
-
-func (s *LayeredGroupStore) GetGroupChannel(groupID string, channelID string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupGetGroupChannel(s.TmpContext, groupID, channelID)
-	})
-}
-
-func (s *LayeredGroupStore) GetAllGroupChannelsByGroupPage(groupID string, offset int, limit int) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupGetAllGroupChannelsByGroupPage(s.TmpContext, groupID, offset, limit)
-	})
-}
-
-func (s *LayeredGroupStore) SaveGroupChannel(groupChannel *model.GroupChannel) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupSaveGroupChannel(s.TmpContext, groupChannel)
-	})
-}
-
-func (s *LayeredGroupStore) DeleteGroupChannel(groupID string, channelID string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupDeleteGroupChannel(s.TmpContext, groupID, channelID)
+		return supplier.GroupDeleteGroupSyncable(s.TmpContext, groupID, syncableID, syncableType)
 	})
 }

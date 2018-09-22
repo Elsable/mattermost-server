@@ -22,15 +22,10 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("CreateMember", func(t *testing.T) { testGroupCreateMember(t, ss) })
 	t.Run("DeleteMember", func(t *testing.T) { testGroupDeleteMember(t, ss) })
 
-	t.Run("GetGroupTeam", func(t *testing.T) { testGetGroupTeam(t, ss) })
-	t.Run("GetAllGroupTeamsByGroupPage", func(t *testing.T) { testGetAllGroupTeamsByGroupPage(t, ss) })
-	t.Run("SaveGroupTeam", func(t *testing.T) { testSaveGroupTeam(t, ss) })
-	t.Run("DeleteGroupTeam", func(t *testing.T) { testDeleteGroupTeam(t, ss) })
-
-	t.Run("GetGroupChannel", func(t *testing.T) { testGetGroupChannel(t, ss) })
-	t.Run("GetAllGroupChannelsByGroupPage", func(t *testing.T) { testGetAllGroupChannelsByGroupPage(t, ss) })
-	t.Run("SaveGroupChannel", func(t *testing.T) { testSaveGroupChannel(t, ss) })
-	t.Run("DeleteGroupChannel", func(t *testing.T) { testDeleteGroupChannel(t, ss) })
+	t.Run("SaveGroupSyncable", func(t *testing.T) { testSaveGroupSyncable(t, ss) })
+	t.Run("GetGroupSyncable", func(t *testing.T) { testGetGroupSyncable(t, ss) })
+	t.Run("GetAllGroupSyncablesByGroupPage", func(t *testing.T) { testGetAllGroupSyncablesByGroupPage(t, ss) })
+	t.Run("DeleteGroupSyncable", func(t *testing.T) { testDeleteGroupSyncable(t, ss) })
 }
 
 func testGroupStoreSave(t *testing.T, ss store.Store) {
@@ -379,7 +374,7 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 	assert.Equal(t, res9.Err.Id, "store.sql_group.get_member.missing.app_error")
 }
 
-func testGetGroupTeam(t *testing.T, ss store.Store) {
+func testGetGroupSyncable(t *testing.T, ss store.Store) {
 	// Create a group
 	g1 := &model.Group{
 		Name:        model.NewId(),
@@ -406,25 +401,24 @@ func testGetGroupTeam(t *testing.T, ss store.Store) {
 	assert.Nil(t, res2.Err)
 	team := res2.Data.(*model.Team)
 
-	// Create GroupTeam
-	gt1 := &model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		TeamId: team.Id,
+	// Create GroupSyncable
+	gt1 := &model.GroupSyncable{
+		GroupId:    group.Id,
+		CanLeave:   true,
+		AutoAdd:    false,
+		SyncableId: team.Id,
+		Type:       model.GSTeam,
 	}
-	res3 := <-ss.Group().SaveGroupTeam(gt1)
+	res3 := <-ss.Group().SaveGroupSyncable(gt1)
 	assert.Nil(t, res3.Err)
-	groupTeam := res3.Data.(*model.GroupTeam)
+	groupTeam := res3.Data.(*model.GroupSyncable)
 
-	// Get GroupTeam
-	res4 := <-ss.Group().GetGroupTeam(groupTeam.GroupId, groupTeam.TeamId)
+	// Get GroupSyncable
+	res4 := <-ss.Group().GetGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GSTeam)
 	assert.Nil(t, res4.Err)
-	dgt := res4.Data.(*model.GroupTeam)
+	dgt := res4.Data.(*model.GroupSyncable)
 	assert.Equal(t, gt1.GroupId, dgt.GroupId)
-	assert.Equal(t, gt1.TeamId, dgt.TeamId)
+	assert.Equal(t, gt1.SyncableId, dgt.SyncableId)
 	assert.Equal(t, gt1.CanLeave, dgt.CanLeave)
 	assert.Equal(t, gt1.AutoAdd, dgt.AutoAdd)
 	assert.NotZero(t, gt1.CreateAt)
@@ -432,7 +426,7 @@ func testGetGroupTeam(t *testing.T, ss store.Store) {
 	assert.Zero(t, gt1.DeleteAt)
 }
 
-func testGetAllGroupTeamsByGroupPage(t *testing.T, ss store.Store) {
+func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 	numGroupTeams := 10
 
 	// Create group
@@ -446,7 +440,7 @@ func testGetAllGroupTeamsByGroupPage(t *testing.T, ss store.Store) {
 	assert.Nil(t, res1.Err)
 	group := res1.Data.(*model.Group)
 
-	groupTeams := []*model.GroupTeam{}
+	groupTeams := []*model.GroupSyncable{}
 
 	// Create groupTeams
 	for i := 0; i < numGroupTeams; i++ {
@@ -466,26 +460,25 @@ func testGetAllGroupTeamsByGroupPage(t *testing.T, ss store.Store) {
 		team := res2.Data.(*model.Team)
 
 		// create groupteam
-		res3 := <-ss.Group().SaveGroupTeam(&model.GroupTeam{
-			GroupSyncable: model.GroupSyncable{
-				GroupId:  group.Id,
-				CanLeave: true,
-			},
-			TeamId: team.Id,
+		res3 := <-ss.Group().SaveGroupSyncable(&model.GroupSyncable{
+			GroupId:    group.Id,
+			CanLeave:   true,
+			SyncableId: team.Id,
+			Type:       model.GSTeam,
 		})
 		assert.Nil(t, res3.Err)
-		groupTeam := res3.Data.(*model.GroupTeam)
+		groupTeam := res3.Data.(*model.GroupSyncable)
 		groupTeams = append(groupTeams, groupTeam)
 	}
 
 	// Returns all the group teams
-	res4 := <-ss.Group().GetAllGroupTeamsByGroupPage(group.Id, 0, 999)
-	d1 := res4.Data.([]*model.GroupTeam)
+	res4 := <-ss.Group().GetAllGroupSyncablesByGroupPage(group.Id, model.GSTeam, 0, 999)
+	d1 := res4.Data.([]*model.GroupSyncable)
 	assert.Condition(t, func() bool { return len(d1) >= numGroupTeams })
 	for _, expectedGroupTeam := range groupTeams {
 		present := false
 		for _, dbGroupTeam := range d1 {
-			if dbGroupTeam.GroupId == expectedGroupTeam.GroupId && dbGroupTeam.TeamId == expectedGroupTeam.TeamId {
+			if dbGroupTeam.GroupId == expectedGroupTeam.GroupId && dbGroupTeam.SyncableId == expectedGroupTeam.SyncableId {
 				present = true
 				break
 			}
@@ -494,53 +487,50 @@ func testGetAllGroupTeamsByGroupPage(t *testing.T, ss store.Store) {
 	}
 
 	// Returns the correct number based on limit
-	res5 := <-ss.Group().GetAllGroupTeamsByGroupPage(group.Id, 0, 2)
-	d2 := res5.Data.([]*model.GroupTeam)
+	res5 := <-ss.Group().GetAllGroupSyncablesByGroupPage(group.Id, model.GSTeam, 0, 2)
+	d2 := res5.Data.([]*model.GroupSyncable)
 	assert.Len(t, d2, 2)
 
 	// Check that result sets are different using an offset
-	res6 := <-ss.Group().GetAllGroupTeamsByGroupPage(group.Id, 0, 5)
-	d3 := res6.Data.([]*model.GroupTeam)
-	res7 := <-ss.Group().GetAllGroupTeamsByGroupPage(group.Id, 5, 5)
-	d4 := res7.Data.([]*model.GroupTeam)
+	res6 := <-ss.Group().GetAllGroupSyncablesByGroupPage(group.Id, model.GSTeam, 0, 5)
+	d3 := res6.Data.([]*model.GroupSyncable)
+	res7 := <-ss.Group().GetAllGroupSyncablesByGroupPage(group.Id, model.GSTeam, 5, 5)
+	d4 := res7.Data.([]*model.GroupSyncable)
 	for _, d3i := range d3 {
 		for _, d4i := range d4 {
-			if d4i.GroupId == d3i.GroupId && d4i.TeamId == d3i.TeamId {
+			if d4i.GroupId == d3i.GroupId && d4i.SyncableId == d3i.SyncableId {
 				t.Error("Expected results to be unique.")
 			}
 		}
 	}
 }
 
-func testSaveGroupTeam(t *testing.T, ss store.Store) {
+func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 	// Invalid TeamID
-	res1 := <-ss.Group().SaveGroupTeam(&model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  model.NewId(),
-			CanLeave: true,
-		},
-		TeamId: "x",
+	res1 := <-ss.Group().SaveGroupSyncable(&model.GroupSyncable{
+		GroupId:    model.NewId(),
+		CanLeave:   true,
+		SyncableId: "x",
+		Type:       model.GSTeam,
 	})
 	assert.Equal(t, res1.Err.Id, "model.group_syncable.team_id.app_error")
 
 	// Invalid GroupID
-	res2 := <-ss.Group().SaveGroupTeam(&model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  "x",
-			CanLeave: true,
-		},
-		TeamId: model.NewId(),
+	res2 := <-ss.Group().SaveGroupSyncable(&model.GroupSyncable{
+		GroupId:    "x",
+		CanLeave:   true,
+		SyncableId: model.NewId(),
+		Type:       model.GSTeam,
 	})
 	assert.Equal(t, res2.Err.Id, "model.group_syncable.group_id.app_error")
 
 	// Invalid CanLeave/AutoAdd combo (both false)
-	res3 := <-ss.Group().SaveGroupTeam(&model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  model.NewId(),
-			CanLeave: false,
-			AutoAdd:  false,
-		},
-		TeamId: model.NewId(),
+	res3 := <-ss.Group().SaveGroupSyncable(&model.GroupSyncable{
+		GroupId:    model.NewId(),
+		CanLeave:   false,
+		AutoAdd:    false,
+		SyncableId: model.NewId(),
+		Type:       model.GSTeam,
 	})
 	assert.Equal(t, res3.Err.Id, "model.group_syncable.invalid_state")
 
@@ -569,19 +559,18 @@ func testSaveGroupTeam(t *testing.T, ss store.Store) {
 	assert.Nil(t, res5.Err)
 	team := res5.Data.(*model.Team)
 
-	// New GroupTeam, happy path
-	gt1 := &model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		TeamId: team.Id,
+	// New GroupSyncable, happy path
+	gt1 := &model.GroupSyncable{
+		GroupId:    group.Id,
+		CanLeave:   true,
+		AutoAdd:    false,
+		SyncableId: team.Id,
+		Type:       model.GSTeam,
 	}
-	res6 := <-ss.Group().SaveGroupTeam(gt1)
+	res6 := <-ss.Group().SaveGroupSyncable(gt1)
 	assert.Nil(t, res6.Err)
-	d1 := res6.Data.(*model.GroupTeam)
-	assert.Equal(t, gt1.TeamId, d1.TeamId)
+	d1 := res6.Data.(*model.GroupSyncable)
+	assert.Equal(t, gt1.SyncableId, d1.SyncableId)
 	assert.Equal(t, gt1.GroupId, d1.GroupId)
 	assert.Equal(t, gt1.CanLeave, d1.CanLeave)
 	assert.Equal(t, gt1.AutoAdd, d1.AutoAdd)
@@ -591,40 +580,38 @@ func testSaveGroupTeam(t *testing.T, ss store.Store) {
 	// Update existing group team
 	gt1.CanLeave = false
 	gt1.AutoAdd = true
-	res7 := <-ss.Group().SaveGroupTeam(gt1)
+	res7 := <-ss.Group().SaveGroupSyncable(gt1)
 	assert.Nil(t, res7.Err)
-	d2 := res7.Data.(*model.GroupTeam)
+	d2 := res7.Data.(*model.GroupSyncable)
 	assert.False(t, d2.CanLeave)
 	assert.True(t, d2.AutoAdd)
 
 	// Update to invalid state
 	gt1.AutoAdd = false
 	gt1.CanLeave = false
-	res8 := <-ss.Group().SaveGroupTeam(gt1)
+	res8 := <-ss.Group().SaveGroupSyncable(gt1)
 	assert.Equal(t, res8.Err.Id, "model.group_syncable.invalid_state")
 
 	// Non-existent Group
-	gt2 := &model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  model.NewId(),
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		TeamId: team.Id,
+	gt2 := &model.GroupSyncable{
+		GroupId:    model.NewId(),
+		CanLeave:   true,
+		AutoAdd:    false,
+		SyncableId: team.Id,
+		Type:       model.GSTeam,
 	}
-	res9 := <-ss.Group().SaveGroupTeam(gt2)
+	res9 := <-ss.Group().SaveGroupSyncable(gt2)
 	assert.Equal(t, res9.Err.Id, "store.sql_group.save_group_team.save.app_error")
 
 	// Non-existent Team
-	gt3 := &model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		TeamId: model.NewId(),
+	gt3 := &model.GroupSyncable{
+		GroupId:    group.Id,
+		CanLeave:   true,
+		AutoAdd:    false,
+		SyncableId: model.NewId(),
+		Type:       model.GSTeam,
 	}
-	res10 := <-ss.Group().SaveGroupTeam(gt3)
+	res10 := <-ss.Group().SaveGroupSyncable(gt3)
 	assert.Equal(t, res10.Err.Id, "store.sql_group.save_group_team.save.app_error")
 
 	// Cannot update CreateAt or DeleteAt
@@ -632,13 +619,13 @@ func testSaveGroupTeam(t *testing.T, ss store.Store) {
 	origDeleteAt := d1.DeleteAt
 	d1.CreateAt = model.GetMillis()
 	d1.DeleteAt = model.GetMillis()
-	res11 := <-ss.Group().SaveGroupTeam(d1)
-	d3 := res11.Data.(*model.GroupTeam)
+	res11 := <-ss.Group().SaveGroupSyncable(d1)
+	d3 := res11.Data.(*model.GroupSyncable)
 	assert.Equal(t, origCreateAt, d3.CreateAt)
 	assert.Equal(t, origDeleteAt, d3.DeleteAt)
 }
 
-func testDeleteGroupTeam(t *testing.T, ss store.Store) {
+func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	// Create Group
 	g1 := &model.Group{
 		Name:        model.NewId(),
@@ -664,436 +651,47 @@ func testDeleteGroupTeam(t *testing.T, ss store.Store) {
 	assert.Nil(t, res2.Err)
 	team := res2.Data.(*model.Team)
 
-	// Create GroupTeam
-	gt1 := &model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		TeamId: team.Id,
+	// Create GroupSyncable
+	gt1 := &model.GroupSyncable{
+		GroupId:    group.Id,
+		CanLeave:   true,
+		AutoAdd:    false,
+		SyncableId: team.Id,
+		Type:       model.GSTeam,
 	}
-	res7 := <-ss.Group().SaveGroupTeam(gt1)
+	res7 := <-ss.Group().SaveGroupSyncable(gt1)
 	assert.Nil(t, res7.Err)
-	groupTeam := res7.Data.(*model.GroupTeam)
+	groupTeam := res7.Data.(*model.GroupSyncable)
 
 	// Invalid GroupId
-	res3 := <-ss.Group().DeleteGroupTeam("x", groupTeam.TeamId)
+	res3 := <-ss.Group().DeleteGroupSyncable("x", groupTeam.SyncableId, model.GSTeam)
 	assert.Equal(t, res3.Err.Id, "store.sql_group.delete_group_team.group_id.invalid")
 
 	// Invalid TeamId
-	res4 := <-ss.Group().DeleteGroupTeam(groupTeam.GroupId, "x")
+	res4 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, "x", model.GSTeam)
 	assert.Equal(t, res4.Err.Id, "store.sql_group.delete_group_team.team_id.invalid")
 
 	// Non-existent Group
-	res5 := <-ss.Group().DeleteGroupTeam(model.NewId(), groupTeam.TeamId)
+	res5 := <-ss.Group().DeleteGroupSyncable(model.NewId(), groupTeam.SyncableId, model.GSTeam)
 	assert.Equal(t, res5.Err.Id, "store.sql_group.delete_group_team.app_error")
 
 	// Non-existent Team
-	res6 := <-ss.Group().DeleteGroupTeam(groupTeam.GroupId, model.NewId())
+	res6 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, model.NewId(), model.GSTeam)
 	assert.Equal(t, res6.Err.Id, "store.sql_group.delete_group_team.app_error")
 
 	// Happy path...
-	res8 := <-ss.Group().DeleteGroupTeam(groupTeam.GroupId, groupTeam.TeamId)
+	res8 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GSTeam)
 	assert.Nil(t, res8.Err)
-	d1 := res8.Data.(*model.GroupTeam)
+	d1 := res8.Data.(*model.GroupSyncable)
 	assert.NotZero(t, d1.DeleteAt)
 	assert.Equal(t, d1.GroupId, groupTeam.GroupId)
-	assert.Equal(t, d1.TeamId, groupTeam.TeamId)
+	assert.Equal(t, d1.SyncableId, groupTeam.SyncableId)
 	assert.Equal(t, d1.CanLeave, groupTeam.CanLeave)
 	assert.Equal(t, d1.AutoAdd, groupTeam.AutoAdd)
 	assert.Equal(t, d1.CreateAt, groupTeam.CreateAt)
 	assert.Condition(t, func() bool { return d1.UpdateAt > groupTeam.UpdateAt })
 
 	// Record already deleted
-	res9 := <-ss.Group().DeleteGroupTeam(groupTeam.GroupId, groupTeam.TeamId)
+	res9 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GSTeam)
 	assert.Equal(t, res9.Err.Id, "store.sql_group.delete_group_team.already_deleted")
-}
-
-func testGetGroupChannel(t *testing.T, ss store.Store) {
-	// Create a group
-	g1 := &model.Group{
-		Name:        model.NewId(),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
-		Type:        model.GroupTypeLdap,
-	}
-	res1 := <-ss.Group().Save(g1)
-	assert.Nil(t, res1.Err)
-	group := res1.Data.(*model.Group)
-
-	// Create Team
-	t1 := &model.Team{
-		DisplayName:     "Name",
-		Description:     "Some description",
-		CompanyName:     "Some company name",
-		AllowOpenInvite: false,
-		InviteId:        "inviteid0",
-		Name:            "z-z-" + model.NewId() + "a",
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
-	}
-	res2 := <-ss.Team().Save(t1)
-	assert.Nil(t, res2.Err)
-	team := res2.Data.(*model.Team)
-
-	// Create Channel
-	id := model.NewId()
-	c1 := &model.Channel{
-		DisplayName: "Hello World " + id,
-		Name:        "hello-world" + id,
-		Type:        model.CHANNEL_OPEN,
-		TeamId:      team.Id,
-	}
-	res5 := <-ss.Channel().Save(c1, 9999)
-	assert.Nil(t, res5.Err)
-	channel := res5.Data.(*model.Channel)
-
-	// Create GroupChannel
-	gc1 := &model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		ChannelId: channel.Id,
-	}
-	res3 := <-ss.Group().SaveGroupChannel(gc1)
-	assert.Nil(t, res3.Err)
-	groupChannel := res3.Data.(*model.GroupChannel)
-
-	// Get GroupChannel
-	res4 := <-ss.Group().GetGroupChannel(groupChannel.GroupId, groupChannel.ChannelId)
-	assert.Nil(t, res4.Err)
-	dgt := res4.Data.(*model.GroupChannel)
-	assert.Equal(t, gc1.GroupId, dgt.GroupId)
-	assert.Equal(t, gc1.ChannelId, dgt.ChannelId)
-	assert.Equal(t, gc1.CanLeave, dgt.CanLeave)
-	assert.Equal(t, gc1.AutoAdd, dgt.AutoAdd)
-	assert.NotZero(t, gc1.CreateAt)
-	assert.NotZero(t, gc1.UpdateAt)
-	assert.Zero(t, gc1.DeleteAt)
-}
-
-func testGetAllGroupChannelsByGroupPage(t *testing.T, ss store.Store) {
-	numGroupChannels := 10
-
-	// Create group
-	g := &model.Group{
-		Name:        model.NewId(),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
-		Type:        model.GroupTypeLdap,
-	}
-	res1 := <-ss.Group().Save(g)
-	assert.Nil(t, res1.Err)
-	group := res1.Data.(*model.Group)
-
-	// Create team
-	t1 := &model.Team{
-		DisplayName:     "Name",
-		Description:     "Some description",
-		CompanyName:     "Some company name",
-		AllowOpenInvite: false,
-		InviteId:        "inviteid0",
-		Name:            "z-z-" + model.NewId() + "a",
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
-	}
-	res5 := <-ss.Team().Save(t1)
-	assert.Nil(t, res5.Err)
-	team := res5.Data.(*model.Team)
-
-	groupChannels := []*model.GroupChannel{}
-
-	// Create groupChannels
-	for i := 0; i < numGroupChannels; i++ {
-		// Create channel
-		id := model.NewId()
-		c1 := &model.Channel{
-			DisplayName: "Hello World " + id,
-			Name:        "hello-world" + id,
-			Type:        model.CHANNEL_OPEN,
-			TeamId:      team.Id,
-		}
-		res9 := <-ss.Channel().Save(c1, 9999)
-		channel := res9.Data.(*model.Channel)
-
-		// create groupteam
-		res3 := <-ss.Group().SaveGroupChannel(&model.GroupChannel{
-			GroupSyncable: model.GroupSyncable{
-				GroupId:  group.Id,
-				CanLeave: true,
-			},
-			ChannelId: channel.Id,
-		})
-		assert.Nil(t, res3.Err)
-		groupTeam := res3.Data.(*model.GroupChannel)
-		groupChannels = append(groupChannels, groupTeam)
-	}
-
-	// Returns all the group teams
-	res4 := <-ss.Group().GetAllGroupChannelsByGroupPage(group.Id, 0, 999)
-	d1 := res4.Data.([]*model.GroupChannel)
-	assert.Condition(t, func() bool { return len(d1) >= numGroupChannels })
-	for _, expectedGroupTeam := range groupChannels {
-		present := false
-		for _, dbGroupTeam := range d1 {
-			if dbGroupTeam.GroupId == expectedGroupTeam.GroupId && dbGroupTeam.ChannelId == expectedGroupTeam.ChannelId {
-				present = true
-				break
-			}
-		}
-		assert.True(t, present)
-	}
-
-	// Returns the correct number based on limit
-	res6 := <-ss.Group().GetAllGroupChannelsByGroupPage(group.Id, 0, 2)
-	d2 := res6.Data.([]*model.GroupChannel)
-	assert.Len(t, d2, 2)
-
-	// Check that result sets are different using an offset
-	res7 := <-ss.Group().GetAllGroupChannelsByGroupPage(group.Id, 0, 5)
-	d3 := res7.Data.([]*model.GroupChannel)
-	res8 := <-ss.Group().GetAllGroupChannelsByGroupPage(group.Id, 5, 5)
-	d4 := res8.Data.([]*model.GroupChannel)
-	for _, d3i := range d3 {
-		for _, d4i := range d4 {
-			if d4i.GroupId == d3i.GroupId && d4i.ChannelId == d3i.ChannelId {
-				t.Error("Expected results to be unique.")
-			}
-		}
-	}
-}
-
-func testSaveGroupChannel(t *testing.T, ss store.Store) {
-	// Invalid ChannelID
-	res1 := <-ss.Group().SaveGroupChannel(&model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  model.NewId(),
-			CanLeave: true,
-		},
-		ChannelId: "x",
-	})
-	assert.Equal(t, res1.Err.Id, "model.group_channel.channel_id.app_error")
-
-	// Invalid GroupID
-	res2 := <-ss.Group().SaveGroupChannel(&model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  "x",
-			CanLeave: true,
-		},
-		ChannelId: model.NewId(),
-	})
-	assert.Equal(t, res2.Err.Id, "model.group_syncable.group_id.app_error")
-
-	// Invalid CanLeave/AutoAdd combo (both false)
-	res3 := <-ss.Group().SaveGroupChannel(&model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  model.NewId(),
-			CanLeave: false,
-			AutoAdd:  false,
-		},
-		ChannelId: model.NewId(),
-	})
-	assert.Equal(t, res3.Err.Id, "model.group_syncable.invalid_state")
-
-	// Create Group
-	g1 := &model.Group{
-		Name:        model.NewId(),
-		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
-	}
-	res4 := <-ss.Group().Save(g1)
-	assert.Nil(t, res4.Err)
-	group := res4.Data.(*model.Group)
-
-	// Create Team
-	t1 := &model.Team{
-		DisplayName:     "Name",
-		Description:     "Some description",
-		CompanyName:     "Some company name",
-		AllowOpenInvite: false,
-		InviteId:        "inviteid0",
-		Name:            "z-z-" + model.NewId() + "a",
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
-	}
-	res5 := <-ss.Team().Save(t1)
-	assert.Nil(t, res5.Err)
-	team := res5.Data.(*model.Team)
-
-	// Create Channel
-	id := model.NewId()
-	c1 := &model.Channel{
-		DisplayName: "Hello World " + id,
-		Name:        "hello-world" + id,
-		Type:        model.CHANNEL_OPEN,
-		TeamId:      team.Id,
-	}
-	res9 := <-ss.Channel().Save(c1, 9999)
-	assert.Nil(t, res9.Err)
-	channel := res9.Data.(*model.Channel)
-
-	// New GroupChannel, happy path
-	gt1 := &model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		ChannelId: channel.Id,
-	}
-	res6 := <-ss.Group().SaveGroupChannel(gt1)
-	assert.Nil(t, res6.Err)
-	d1 := res6.Data.(*model.GroupChannel)
-	assert.Equal(t, gt1.ChannelId, d1.ChannelId)
-	assert.Equal(t, gt1.GroupId, d1.GroupId)
-	assert.Equal(t, gt1.CanLeave, d1.CanLeave)
-	assert.Equal(t, gt1.AutoAdd, d1.AutoAdd)
-	assert.NotZero(t, d1.CreateAt)
-	assert.Zero(t, d1.DeleteAt)
-
-	// Update existing group team
-	res12 := <-ss.Group().GetAllPage(0, 999)
-	beforeCount := len(res12.Data.([]*model.Group))
-
-	gt1.CanLeave = false
-	gt1.AutoAdd = true
-	res7 := <-ss.Group().SaveGroupChannel(gt1)
-	assert.Nil(t, res7.Err)
-	d2 := res7.Data.(*model.GroupChannel)
-	assert.False(t, d2.CanLeave)
-	assert.True(t, d2.AutoAdd)
-
-	res13 := <-ss.Group().GetAllPage(0, 999)
-	afterCount := len(res13.Data.([]*model.Group))
-
-	assert.Equal(t, afterCount, beforeCount)
-
-	// Update to invalid state
-	gt1.AutoAdd = false
-	gt1.CanLeave = false
-	res8 := <-ss.Group().SaveGroupChannel(gt1)
-	assert.Equal(t, res8.Err.Id, "model.group_syncable.invalid_state")
-
-	// Non-existent Group
-	gt2 := &model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  model.NewId(),
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		ChannelId: channel.Id,
-	}
-	res10 := <-ss.Group().SaveGroupChannel(gt2)
-	assert.Equal(t, res10.Err.Id, "store.sql_group.save_group_channel.save.app_error")
-
-	// Non-existent Channel
-	gt3 := &model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		ChannelId: model.NewId(),
-	}
-	res11 := <-ss.Group().SaveGroupChannel(gt3)
-	assert.Equal(t, res11.Err.Id, "store.sql_group.save_group_channel.save.app_error")
-
-	// Cannot update CreateAt or DeleteAt
-	origCreateAt := d1.CreateAt
-	origDeleteAt := d1.DeleteAt
-	d1.CreateAt = model.GetMillis()
-	d1.DeleteAt = model.GetMillis()
-	res14 := <-ss.Group().SaveGroupChannel(d1)
-	d3 := res14.Data.(*model.GroupChannel)
-	assert.Equal(t, origCreateAt, d3.CreateAt)
-	assert.Equal(t, origDeleteAt, d3.DeleteAt)
-}
-
-func testDeleteGroupChannel(t *testing.T, ss store.Store) {
-	// Create Group
-	g1 := &model.Group{
-		Name:        model.NewId(),
-		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
-	}
-	res1 := <-ss.Group().Save(g1)
-	assert.Nil(t, res1.Err)
-	group := res1.Data.(*model.Group)
-
-	// Create Team
-	t1 := &model.Team{
-		DisplayName:     "Name",
-		Description:     "Some description",
-		CompanyName:     "Some company name",
-		AllowOpenInvite: false,
-		InviteId:        "inviteid0",
-		Name:            "z-z-" + model.NewId() + "a",
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
-	}
-	res2 := <-ss.Team().Save(t1)
-	assert.Nil(t, res2.Err)
-	team := res2.Data.(*model.Team)
-
-	// Create channel
-	id := model.NewId()
-	c1 := &model.Channel{
-		DisplayName: "Hello World " + id,
-		Name:        "hello-world" + id,
-		Type:        model.CHANNEL_OPEN,
-		TeamId:      team.Id,
-	}
-	res9 := <-ss.Channel().Save(c1, 9999)
-	assert.Nil(t, res9.Err)
-	channel := res9.Data.(*model.Channel)
-
-	// Create GroupChannel
-	gc1 := &model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		ChannelId: channel.Id,
-	}
-	res7 := <-ss.Group().SaveGroupChannel(gc1)
-	assert.Nil(t, res7.Err)
-	groupChannel := res7.Data.(*model.GroupChannel)
-	assert.NotNil(t, groupChannel)
-
-	// Invalid GroupId
-	res3 := <-ss.Group().DeleteGroupChannel("x", groupChannel.ChannelId)
-	assert.Equal(t, res3.Err.Id, "store.sql_group.delete_group_channel.group_id.invalid")
-
-	// Invalid ChannelId
-	res4 := <-ss.Group().DeleteGroupChannel(groupChannel.ChannelId, "x")
-	assert.Equal(t, res4.Err.Id, "store.sql_group.delete_group_channel.channel_id.invalid")
-
-	// Non-existent Group
-	res5 := <-ss.Group().DeleteGroupChannel(model.NewId(), groupChannel.ChannelId)
-	assert.Equal(t, res5.Err.Id, "store.sql_group.delete_group_channel.app_error")
-
-	// Non-existent Channel
-	res6 := <-ss.Group().DeleteGroupChannel(groupChannel.ChannelId, model.NewId())
-	assert.Equal(t, res6.Err.Id, "store.sql_group.delete_group_channel.app_error")
-
-	// Happy path...
-	res8 := <-ss.Group().DeleteGroupChannel(groupChannel.GroupId, groupChannel.ChannelId)
-	assert.Nil(t, res8.Err)
-	d1 := res8.Data.(*model.GroupChannel)
-	assert.NotZero(t, d1.DeleteAt)
-	assert.Equal(t, d1.GroupId, groupChannel.GroupId)
-	assert.Equal(t, d1.ChannelId, groupChannel.ChannelId)
-	assert.Equal(t, d1.CanLeave, groupChannel.CanLeave)
-	assert.Equal(t, d1.AutoAdd, groupChannel.AutoAdd)
-	assert.Equal(t, d1.CreateAt, groupChannel.CreateAt)
-	assert.Equal(t, d1.UpdateAt, d1.DeleteAt)
-	assert.Condition(t, func() bool { return d1.UpdateAt > groupChannel.UpdateAt })
-
-	// Record already deleted
-	res10 := <-ss.Group().DeleteGroupChannel(groupChannel.GroupId, groupChannel.ChannelId)
-	assert.Equal(t, res10.Err.Id, "store.sql_group.delete_group_channel.already_deleted")
 }

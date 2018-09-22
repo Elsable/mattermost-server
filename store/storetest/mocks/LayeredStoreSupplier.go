@@ -60,43 +60,20 @@ func (_m *LayeredStoreSupplier) GroupDelete(ctx context.Context, groupID string,
 	return r0
 }
 
-// GroupDeleteGroupChannel provides a mock function with given fields: ctx, groupID, channelID, hints
-func (_m *LayeredStoreSupplier) GroupDeleteGroupChannel(ctx context.Context, groupID string, channelID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GroupDeleteGroupSyncable provides a mock function with given fields: ctx, groupID, syncableID, syncableType, hints
+func (_m *LayeredStoreSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, groupID, channelID)
+	_ca = append(_ca, ctx, groupID, syncableID, syncableType)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, groupID, channelID, hints...)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
-		}
-	}
-
-	return r0
-}
-
-// GroupDeleteGroupTeam provides a mock function with given fields: ctx, groupID, teamID, hints
-func (_m *LayeredStoreSupplier) GroupDeleteGroupTeam(ctx context.Context, groupID string, teamID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	_va := make([]interface{}, len(hints))
-	for _i := range hints {
-		_va[_i] = hints[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, ctx, groupID, teamID)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
-
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, groupID, teamID, hints...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, model.GroupSyncableType, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, groupID, syncableID, syncableType, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
@@ -152,43 +129,20 @@ func (_m *LayeredStoreSupplier) GroupGet(ctx context.Context, groupID string, hi
 	return r0
 }
 
-// GroupGetAllGroupChannelsByGroupPage provides a mock function with given fields: ctx, groupID, offset, limit, hints
-func (_m *LayeredStoreSupplier) GroupGetAllGroupChannelsByGroupPage(ctx context.Context, groupID string, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GroupGetAllGroupSyncablesByGroupPage provides a mock function with given fields: ctx, groupID, syncableType, offset, limit, hints
+func (_m *LayeredStoreSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, groupID string, syncableType model.GroupSyncableType, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, groupID, offset, limit)
+	_ca = append(_ca, ctx, groupID, syncableType, offset, limit)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, int, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, groupID, offset, limit, hints...)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
-		}
-	}
-
-	return r0
-}
-
-// GroupGetAllGroupTeamsByGroupPage provides a mock function with given fields: ctx, groupID, offset, limit, hints
-func (_m *LayeredStoreSupplier) GroupGetAllGroupTeamsByGroupPage(ctx context.Context, groupID string, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	_va := make([]interface{}, len(hints))
-	for _i := range hints {
-		_va[_i] = hints[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, ctx, groupID, offset, limit)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
-
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, int, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, groupID, offset, limit, hints...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.GroupSyncableType, int, int, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, groupID, syncableType, offset, limit, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
@@ -221,43 +175,20 @@ func (_m *LayeredStoreSupplier) GroupGetAllPage(ctx context.Context, offset int,
 	return r0
 }
 
-// GroupGetGroupChannel provides a mock function with given fields: ctx, groupID, channelID, hints
-func (_m *LayeredStoreSupplier) GroupGetGroupChannel(ctx context.Context, groupID string, channelID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GroupGetGroupSyncable provides a mock function with given fields: ctx, groupID, syncableID, syncableType, hints
+func (_m *LayeredStoreSupplier) GroupGetGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, groupID, channelID)
+	_ca = append(_ca, ctx, groupID, syncableID, syncableType)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, groupID, channelID, hints...)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
-		}
-	}
-
-	return r0
-}
-
-// GroupGetGroupTeam provides a mock function with given fields: ctx, groupID, teamID, hints
-func (_m *LayeredStoreSupplier) GroupGetGroupTeam(ctx context.Context, groupID string, teamID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	_va := make([]interface{}, len(hints))
-	for _i := range hints {
-		_va[_i] = hints[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, ctx, groupID, teamID)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
-
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, groupID, teamID, hints...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, model.GroupSyncableType, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, groupID, syncableID, syncableType, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
@@ -290,43 +221,20 @@ func (_m *LayeredStoreSupplier) GroupSave(ctx context.Context, group *model.Grou
 	return r0
 }
 
-// GroupSaveGroupChannel provides a mock function with given fields: ctx, groupChannel, hints
-func (_m *LayeredStoreSupplier) GroupSaveGroupChannel(ctx context.Context, groupChannel *model.GroupChannel, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GroupSaveGroupSyncable provides a mock function with given fields: ctx, groupSyncable, hints
+func (_m *LayeredStoreSupplier) GroupSaveGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, groupChannel)
+	_ca = append(_ca, ctx, groupSyncable)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, *model.GroupChannel, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, groupChannel, hints...)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
-		}
-	}
-
-	return r0
-}
-
-// GroupSaveGroupTeam provides a mock function with given fields: ctx, groupTeam, hints
-func (_m *LayeredStoreSupplier) GroupSaveGroupTeam(ctx context.Context, groupTeam *model.GroupTeam, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	_va := make([]interface{}, len(hints))
-	for _i := range hints {
-		_va[_i] = hints[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, ctx, groupTeam)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
-
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, *model.GroupTeam, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, groupTeam, hints...)
+	if rf, ok := ret.Get(0).(func(context.Context, *model.GroupSyncable, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, groupSyncable, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)

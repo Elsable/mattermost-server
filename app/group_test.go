@@ -129,75 +129,72 @@ func TestDeleteGroupMember(t *testing.T) {
 	}
 }
 
-func TestCreateGroupTeam(t *testing.T) {
+func TestCreateGroupSyncable(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	groupTeam := &model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		TeamId: th.BasicTeam.Id,
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    group.Id,
+		CanLeave:   true,
+		AutoAdd:    false,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GSTeam,
 	}
 
-	if _, err := th.App.CreateGroupTeam(groupTeam); err != nil {
+	if _, err := th.App.CreateGroupSyncable(groupSyncable); err != nil {
 		t.Log(err)
 		t.Fatal("Should create group team")
 	}
 
-	if _, err := th.App.CreateGroupTeam(groupTeam); err == nil {
+	if _, err := th.App.CreateGroupSyncable(groupSyncable); err == nil {
 		t.Fatal("Should not create group team - group team already exists")
 	}
 }
 
-func TestGetGroupTeam(t *testing.T) {
+func TestGetGroupSyncable(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	groupTeam := &model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		TeamId: th.BasicTeam.Id,
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    group.Id,
+		CanLeave:   true,
+		AutoAdd:    false,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GSTeam,
 	}
 
-	// Create GroupTeam
-	if _, err := th.App.CreateGroupTeam(groupTeam); err != nil {
+	// Create GroupSyncable
+	if _, err := th.App.CreateGroupSyncable(groupSyncable); err != nil {
 		t.Log(err)
 		t.Fatal("Should create group team")
 	}
 
-	if _, err := th.App.GetGroupTeam(group.Id, th.BasicTeam.Id); err != nil {
+	if _, err := th.App.GetGroupSyncable(group.Id, th.BasicTeam.Id, model.GSTeam); err != nil {
 		t.Log(err)
 		t.Fatal("Should delete group team")
 	}
 }
 
-func TestGetGroupTeamsPage(t *testing.T) {
+func TestGetGroupSyncablesPage(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 
 	// Create a group team
-	groupTeam := &model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		TeamId: th.BasicTeam.Id,
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    group.Id,
+		CanLeave:   true,
+		AutoAdd:    false,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GSTeam,
 	}
 
-	if _, err := th.App.CreateGroupTeam(groupTeam); err != nil {
+	if _, err := th.App.CreateGroupSyncable(groupSyncable); err != nil {
 		t.Log(err)
 		t.Fatal("Should create group team")
 	}
 
-	groupTeams, err := th.App.GetGroupTeamsPage(group.Id, 0, 99)
+	groupTeams, err := th.App.GetGroupSyncablesPage(group.Id, model.GSTeam, 0, 99)
 	if err != nil {
 		t.Log(err)
 		t.Fatal("Should have group teams")
@@ -207,148 +204,35 @@ func TestGetGroupTeamsPage(t *testing.T) {
 		t.Fatal("Should have retrieved at least one group team")
 	}
 
-	if groupTeams, _ = th.App.GetGroupTeamsPage(group.Id, 999, 1); len(groupTeams) > 0 {
+	if groupTeams, _ = th.App.GetGroupSyncablesPage(group.Id, model.GSTeam, 999, 1); len(groupTeams) > 0 {
 		t.Fatal("Should not have group teams")
 	}
 }
 
-func TestDeleteGroupTeam(t *testing.T) {
+func TestDeleteGroupSyncable(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	groupTeam := &model.GroupTeam{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		TeamId: th.BasicTeam.Id,
+	groupChannel := &model.GroupSyncable{
+		GroupId:    group.Id,
+		CanLeave:   true,
+		AutoAdd:    false,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GSChannel,
 	}
 
-	// Create GroupTeam
-	if _, err := th.App.CreateGroupTeam(groupTeam); err != nil {
-		t.Log(err)
-		t.Fatal("Should create group team")
-	}
-
-	if _, err := th.App.DeleteGroupTeam(group.Id, th.BasicTeam.Id); err != nil {
-		t.Log(err)
-		t.Fatal("Should delete group team")
-	}
-
-	if _, err := th.App.DeleteGroupTeam(group.Id, th.BasicTeam.Id); err == nil {
-		t.Fatal("Should not re-delete group team - group team already deleted")
-	}
-}
-
-func TestCreateGroupChannel(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	group := th.CreateGroup()
-	groupChannel := &model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		ChannelId: th.BasicChannel.Id,
-	}
-
-	if _, err := th.App.CreateGroupChannel(groupChannel); err != nil {
+	// Create GroupSyncable
+	if _, err := th.App.CreateGroupSyncable(groupChannel); err != nil {
 		t.Log(err)
 		t.Fatal("Should create group channel")
 	}
 
-	if _, err := th.App.CreateGroupChannel(groupChannel); err == nil {
-		t.Fatal("Should not create group channel - group channel already exists")
-	}
-}
-
-func TestGetGroupChannel(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	group := th.CreateGroup()
-	groupChannel := &model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		ChannelId: th.BasicChannel.Id,
-	}
-
-	// Create GroupChannel
-	if _, err := th.App.CreateGroupChannel(groupChannel); err != nil {
-		t.Log(err)
-		t.Fatal("Should create group channel")
-	}
-
-	if _, err := th.App.GetGroupChannel(group.Id, th.BasicChannel.Id); err != nil {
-		t.Log(err)
-		t.Fatal("Should delete group channel")
-	}
-}
-
-func TestGetGroupChannelsPage(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	group := th.CreateGroup()
-
-	// Create a group channel
-	groupChannel := &model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		ChannelId: th.BasicChannel.Id,
-	}
-
-	if _, err := th.App.CreateGroupChannel(groupChannel); err != nil {
-		t.Log(err)
-		t.Fatal("Should create group channel")
-	}
-
-	groupTeams, err := th.App.GetGroupChannelsPage(group.Id, 0, 99)
-	if err != nil {
-		t.Log(err)
-		t.Fatal("Should have group channels")
-	}
-
-	if len(groupTeams) < 1 {
-		t.Fatal("Should have retrieved at least one group team")
-	}
-
-	if groupTeams, _ = th.App.GetGroupChannelsPage(group.Id, 999, 1); len(groupTeams) > 0 {
-		t.Fatal("Should not have group channels.")
-	}
-}
-
-func TestDeleteGroupChannel(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	group := th.CreateGroup()
-	groupChannel := &model.GroupChannel{
-		GroupSyncable: model.GroupSyncable{
-			GroupId:  group.Id,
-			CanLeave: true,
-			AutoAdd:  false,
-		},
-		ChannelId: th.BasicChannel.Id,
-	}
-
-	// Create GroupChannel
-	if _, err := th.App.CreateGroupChannel(groupChannel); err != nil {
-		t.Log(err)
-		t.Fatal("Should create group channel")
-	}
-
-	if _, err := th.App.DeleteGroupChannel(group.Id, th.BasicChannel.Id); err != nil {
+	if _, err := th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GSChannel); err != nil {
 		t.Log(err)
 		t.Fatal("Should delete group channel")
 	}
 
-	if _, err := th.App.DeleteGroupChannel(group.Id, th.BasicChannel.Id); err == nil {
+	if _, err := th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GSChannel); err == nil {
 		t.Fatal("Should not re-delete group channel - group channel already deleted")
 	}
 }

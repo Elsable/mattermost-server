@@ -55,34 +55,18 @@ func (s *LocalCacheSupplier) GroupDeleteMember(ctx context.Context, groupID stri
 	return s.Next().GroupDeleteMember(ctx, groupID, userID, hints...)
 }
 
-func (s *LocalCacheSupplier) GroupGetGroupTeam(ctx context.Context, groupID string, teamID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupGetGroupTeam(ctx, groupID, teamID, hints...)
+func (s *LocalCacheSupplier) GroupGetGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupGetGroupSyncable(ctx, groupID, syncableID, syncableType, hints...)
 }
 
-func (s *LocalCacheSupplier) GroupGetAllGroupTeamsByGroupPage(ctx context.Context, groupID string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupGetAllGroupTeamsByGroupPage(ctx, groupID, offset, limit, hints...)
+func (s *LocalCacheSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, groupID string, syncableType model.GroupSyncableType, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupGetAllGroupSyncablesByGroupPage(ctx, groupID, syncableType, offset, limit, hints...)
 }
 
-func (s *LocalCacheSupplier) GroupSaveGroupTeam(ctx context.Context, groupTeam *model.GroupTeam, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupSaveGroupTeam(ctx, groupTeam, hints...)
+func (s *LocalCacheSupplier) GroupSaveGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupSaveGroupSyncable(ctx, groupSyncable, hints...)
 }
 
-func (s *LocalCacheSupplier) GroupDeleteGroupTeam(ctx context.Context, groupID string, teamID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupDeleteGroupTeam(ctx, groupID, teamID, hints...)
-}
-
-func (s *LocalCacheSupplier) GroupGetGroupChannel(ctx context.Context, groupID string, channelID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupGetGroupChannel(ctx, groupID, channelID, hints...)
-}
-
-func (s *LocalCacheSupplier) GroupGetAllGroupChannelsByGroupPage(ctx context.Context, groupID string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupGetAllGroupChannelsByGroupPage(ctx, groupID, offset, limit, hints...)
-}
-
-func (s *LocalCacheSupplier) GroupSaveGroupChannel(ctx context.Context, groupChannel *model.GroupChannel, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupSaveGroupChannel(ctx, groupChannel, hints...)
-}
-
-func (s *LocalCacheSupplier) GroupDeleteGroupChannel(ctx context.Context, groupID string, channelID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupDeleteGroupChannel(ctx, groupID, channelID, hints...)
+func (s *LocalCacheSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupDeleteGroupSyncable(ctx, groupID, syncableID, syncableType, hints...)
 }

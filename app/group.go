@@ -68,66 +68,34 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 	return result.Data.(*model.GroupMember), nil
 }
 
-func (a *App) GetGroupTeam(groupID string, teamID string) (*model.GroupTeam, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetGroupTeam(groupID, teamID)
+func (a *App) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	result := <-a.Srv.Store.Group().SaveGroupSyncable(groupSyncable)
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	return result.Data.(*model.GroupTeam), nil
+	return result.Data.(*model.GroupSyncable), nil
 }
 
-func (a *App) GetGroupTeamsPage(groupID string, page int, perPage int) ([]*model.GroupTeam, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetAllGroupTeamsByGroupPage(groupID, page*perPage, perPage)
+func (a *App) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (interface{}, *model.AppError) {
+	result := <-a.Srv.Store.Group().GetGroupSyncable(groupID, syncableID, syncableType)
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	return result.Data.([]*model.GroupTeam), nil
+	return result.Data.(*model.GroupSyncable), nil
 }
 
-func (a *App) CreateGroupTeam(groupTeam *model.GroupTeam) (*model.GroupTeam, *model.AppError) {
-	result := <-a.Srv.Store.Group().SaveGroupTeam(groupTeam)
+func (a *App) GetGroupSyncablesPage(groupID string, syncableType model.GroupSyncableType, page int, perPage int) ([]*model.GroupSyncable, *model.AppError) {
+	result := <-a.Srv.Store.Group().GetAllGroupSyncablesByGroupPage(groupID, syncableType, page*perPage, perPage)
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	return result.Data.(*model.GroupTeam), nil
+	return result.Data.([]*model.GroupSyncable), nil
 }
 
-func (a *App) DeleteGroupTeam(groupID string, teamID string) (*model.GroupTeam, *model.AppError) {
-	result := <-a.Srv.Store.Group().DeleteGroupTeam(groupID, teamID)
+func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	result := <-a.Srv.Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	return result.Data.(*model.GroupTeam), nil
-}
-
-func (a *App) GetGroupChannel(groupID string, channelID string) (*model.GroupChannel, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetGroupChannel(groupID, channelID)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupChannel), nil
-}
-
-func (a *App) GetGroupChannelsPage(groupID string, page int, perPage int) ([]*model.GroupChannel, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetAllGroupChannelsByGroupPage(groupID, page*perPage, perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.GroupChannel), nil
-}
-
-func (a *App) CreateGroupChannel(groupChannel *model.GroupChannel) (*model.GroupChannel, *model.AppError) {
-	result := <-a.Srv.Store.Group().SaveGroupChannel(groupChannel)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupChannel), nil
-}
-
-func (a *App) DeleteGroupChannel(groupID string, channelID string) (*model.GroupChannel, *model.AppError) {
-	result := <-a.Srv.Store.Group().DeleteGroupChannel(groupID, channelID)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupChannel), nil
+	return result.Data.(*model.GroupSyncable), nil
 }
