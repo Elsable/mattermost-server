@@ -427,7 +427,7 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 }
 
 func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
-	numGroupTeams := 10
+	numGroupSyncables := 10
 
 	// Create group
 	g := &model.Group{
@@ -443,7 +443,7 @@ func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 	groupTeams := []*model.GroupSyncable{}
 
 	// Create groupTeams
-	for i := 0; i < numGroupTeams; i++ {
+	for i := 0; i < numGroupSyncables; i++ {
 		// Create Team
 		t1 := &model.Team{
 			DisplayName:     "Name",
@@ -474,7 +474,7 @@ func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 	// Returns all the group teams
 	res4 := <-ss.Group().GetAllGroupSyncablesByGroupPage(group.Id, model.GSTeam, 0, 999)
 	d1 := res4.Data.([]*model.GroupSyncable)
-	assert.Condition(t, func() bool { return len(d1) >= numGroupTeams })
+	assert.Condition(t, func() bool { return len(d1) >= numGroupSyncables })
 	for _, expectedGroupTeam := range groupTeams {
 		present := false
 		for _, dbGroupTeam := range d1 {

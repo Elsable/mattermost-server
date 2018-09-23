@@ -19,17 +19,17 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members", api.ApiSessionRequired(createGroupMember)).Methods("POST")
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteGroupMember)).Methods("DELETE")
 
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(createGroupTeam)).Methods("POST")
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(getGroupTeams)).Methods("GET")
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getGroupTeam)).Methods("GET")
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/patch", api.ApiSessionRequired(patchGroupTeam)).Methods("PUT")
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteGroupTeam)).Methods("DELETE")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(createGroupSyncable(model.GSTeam))).Methods("POST")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(getGroupSyncables(model.GSTeam))).Methods("GET")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getGroupSyncable(model.GSTeam))).Methods("GET")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(updateGroupSyncable(model.GSTeam))).Methods("PUT")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteGroupSyncable(model.GSTeam))).Methods("DELETE")
 
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(createGroupChannel)).Methods("POST")
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getGroupChannels)).Methods("GET")
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getGroupChannel)).Methods("GET")
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/patch", api.ApiSessionRequired(patchGroupChannel)).Methods("PUT")
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteGroupChannel)).Methods("DELETE")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(createGroupSyncable(model.GSChannel))).Methods("POST")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getGroupSyncables(model.GSChannel))).Methods("GET")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getGroupSyncable(model.GSChannel))).Methods("GET")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}", api.ApiSessionRequired(updateGroupSyncable(model.GSChannel))).Methods("PUT")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteGroupSyncable(model.GSChannel))).Methods("DELETE")
 }
 
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -155,14 +155,32 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 func createGroupMember(c *Context, w http.ResponseWriter, r *http.Request) {}
 func deleteGroupMember(c *Context, w http.ResponseWriter, r *http.Request) {}
 
-func createGroupTeam(c *Context, w http.ResponseWriter, r *http.Request) {}
-func getGroupTeams(c *Context, w http.ResponseWriter, r *http.Request)   {}
-func getGroupTeam(c *Context, w http.ResponseWriter, r *http.Request)    {}
-func patchGroupTeam(c *Context, w http.ResponseWriter, r *http.Request)  {}
-func deleteGroupTeam(c *Context, w http.ResponseWriter, r *http.Request) {}
+func createGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
 
-func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {}
-func getGroupChannels(c *Context, w http.ResponseWriter, r *http.Request)   {}
-func getGroupChannel(c *Context, w http.ResponseWriter, r *http.Request)    {}
-func patchGroupChannel(c *Context, w http.ResponseWriter, r *http.Request)  {}
-func deleteGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {}
+	}
+}
+
+func getGroupSyncables(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+func getGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+func updateGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+func deleteGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	}
+}
