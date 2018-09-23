@@ -306,7 +306,7 @@ func (a *App) WaitForChannelMembership(channelId string, userId string) {
 	mlog.Error(fmt.Sprintf("WaitForChannelMembership giving up channelId=%v userId=%v", channelId, userId), mlog.String("user_id", userId))
 }
 
-func (a *App) CreateGroupTypeChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
+func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
 	channel, err := a.createGroupChannel(userIds, creatorId)
 	if err != nil {
 		if err.Id == store.CHANNEL_EXISTS_ERROR {
@@ -332,7 +332,7 @@ func (a *App) CreateGroupTypeChannel(userIds []string, creatorId string) (*model
 
 func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
 	if len(userIds) > model.CHANNEL_GROUP_MAX_USERS || len(userIds) < model.CHANNEL_GROUP_MIN_USERS {
-		return nil, model.NewAppError("CreateGroupTypeChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
@@ -342,7 +342,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 	users := result.Data.([]*model.User)
 
 	if len(users) != len(userIds) {
-		return nil, model.NewAppError("CreateGroupTypeChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
+		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
 	}
 
 	group := &model.Channel{

@@ -292,11 +292,11 @@ func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	return channel
 }
 
-func (me *TestHelper) CreateGroupTypeChannel(user1 *model.User, user2 *model.User) *model.Channel {
+func (me *TestHelper) CreateGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = me.App.CreateGroupTypeChannel([]string{me.BasicUser.Id, user1.Id, user2.Id}, me.BasicUser.Id); err != nil {
+	if channel, err = me.App.CreateGroupChannel([]string{me.BasicUser.Id, user1.Id, user2.Id}, me.BasicUser.Id); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)

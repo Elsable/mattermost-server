@@ -377,7 +377,7 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupChannel, err := c.App.CreateGroupTypeChannel(userIds, c.Session.UserId)
+	groupChannel, err := c.App.CreateGroupChannel(userIds, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return

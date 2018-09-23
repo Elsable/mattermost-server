@@ -97,7 +97,7 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 	var channelErr *model.AppError
 
 	if a.SessionHasPermissionTo(args.Session, model.PERMISSION_CREATE_GROUP_CHANNEL) {
-		groupChannel, channelErr = a.CreateGroupTypeChannel(targetUsersSlice, args.UserId)
+		groupChannel, channelErr = a.CreateGroupChannel(targetUsersSlice, args.UserId)
 		if channelErr != nil {
 			mlog.Error(channelErr.Error())
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
