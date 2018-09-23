@@ -307,7 +307,7 @@ func (a *App) WaitForChannelMembership(channelId string, userId string) {
 }
 
 func (a *App) CreateGroupTypeChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
-	channel, err := a.createGroupTypeChannel(userIds, creatorId)
+	channel, err := a.createGroupChannel(userIds, creatorId)
 	if err != nil {
 		if err.Id == store.CHANNEL_EXISTS_ERROR {
 			return channel, nil
@@ -330,7 +330,7 @@ func (a *App) CreateGroupTypeChannel(userIds []string, creatorId string) (*model
 	return channel, nil
 }
 
-func (a *App) createGroupTypeChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
+func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
 	if len(userIds) > model.CHANNEL_GROUP_MAX_USERS || len(userIds) < model.CHANNEL_GROUP_MIN_USERS {
 		return nil, model.NewAppError("CreateGroupTypeChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -379,9 +379,9 @@ func (a *App) createGroupTypeChannel(userIds []string, creatorId string) (*model
 	return channel, nil
 }
 
-func (a *App) GetGroupTypeChannel(userIds []string) (*model.Channel, *model.AppError) {
+func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 	if len(userIds) > model.CHANNEL_GROUP_MAX_USERS || len(userIds) < model.CHANNEL_GROUP_MIN_USERS {
-		return nil, model.NewAppError("GetGroupTypeChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
@@ -391,7 +391,7 @@ func (a *App) GetGroupTypeChannel(userIds []string) (*model.Channel, *model.AppE
 	users := result.Data.([]*model.User)
 
 	if len(users) != len(userIds) {
-		return nil, model.NewAppError("GetGroupTypeChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
+		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
 	}
 
 	channel, err := a.GetChannelByName(model.GetGroupNameFromUserIds(userIds), "", true)
