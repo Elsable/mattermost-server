@@ -29,7 +29,7 @@ func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	group.CreateAt = 0
 	group.UpdateAt = 0
 	group.DeleteAt = 0
-	result := <-a.Srv.Store.Group().Save(group)
+	result := <-a.Srv.Store.Group().Create(group)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -37,7 +37,7 @@ func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 }
 
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().Save(group)
+	result := <-a.Srv.Store.Group().Update(group)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -69,7 +69,7 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 }
 
 func (a *App) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().SaveGroupSyncable(groupSyncable)
+	result := <-a.Srv.Store.Group().CreateGroupSyncable(groupSyncable)
 	if result.Err != nil {
 		return nil, result.Err
 	}

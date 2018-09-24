@@ -14,6 +14,52 @@ type LayeredStoreSupplier struct {
 	mock.Mock
 }
 
+// GroupCreate provides a mock function with given fields: ctx, group, hints
+func (_m *LayeredStoreSupplier) GroupCreate(ctx context.Context, group *model.Group, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	_va := make([]interface{}, len(hints))
+	for _i := range hints {
+		_va[_i] = hints[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, group)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *store.LayeredStoreSupplierResult
+	if rf, ok := ret.Get(0).(func(context.Context, *model.Group, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, group, hints...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		}
+	}
+
+	return r0
+}
+
+// GroupCreateGroupSyncable provides a mock function with given fields: ctx, groupSyncable, hints
+func (_m *LayeredStoreSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	_va := make([]interface{}, len(hints))
+	for _i := range hints {
+		_va[_i] = hints[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, groupSyncable)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *store.LayeredStoreSupplierResult
+	if rf, ok := ret.Get(0).(func(context.Context, *model.GroupSyncable, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, groupSyncable, hints...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		}
+	}
+
+	return r0
+}
+
 // GroupCreateMember provides a mock function with given fields: ctx, groupID, userID, hints
 func (_m *LayeredStoreSupplier) GroupCreateMember(ctx context.Context, groupID string, userID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
@@ -198,8 +244,8 @@ func (_m *LayeredStoreSupplier) GroupGetGroupSyncable(ctx context.Context, group
 	return r0
 }
 
-// GroupSave provides a mock function with given fields: ctx, group, hints
-func (_m *LayeredStoreSupplier) GroupSave(ctx context.Context, group *model.Group, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GroupUpdate provides a mock function with given fields: ctx, group, hints
+func (_m *LayeredStoreSupplier) GroupUpdate(ctx context.Context, group *model.Group, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -221,8 +267,8 @@ func (_m *LayeredStoreSupplier) GroupSave(ctx context.Context, group *model.Grou
 	return r0
 }
 
-// GroupSaveGroupSyncable provides a mock function with given fields: ctx, groupSyncable, hints
-func (_m *LayeredStoreSupplier) GroupSaveGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GroupUpdateGroupSyncable provides a mock function with given fields: ctx, groupSyncable, hints
+func (_m *LayeredStoreSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]

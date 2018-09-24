@@ -329,9 +329,9 @@ type LayeredGroupStore struct {
 	*LayeredStore
 }
 
-func (s *LayeredGroupStore) Save(group *model.Group) StoreChannel {
+func (s *LayeredGroupStore) Create(group *model.Group) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupSave(s.TmpContext, group)
+		return supplier.GroupCreate(s.TmpContext, group)
 	})
 }
 
@@ -344,6 +344,12 @@ func (s *LayeredGroupStore) Get(groupId string) StoreChannel {
 func (s *LayeredGroupStore) GetAllPage(offset int, limit int) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.GroupGetAllPage(s.TmpContext, offset, limit)
+	})
+}
+
+func (s *LayeredGroupStore) Update(group *model.Group) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupUpdate(s.TmpContext, group)
 	})
 }
 
@@ -365,6 +371,12 @@ func (s *LayeredGroupStore) DeleteMember(groupID string, userID string) StoreCha
 	})
 }
 
+func (s *LayeredGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupCreateGroupSyncable(s.TmpContext, groupSyncable)
+	})
+}
+
 func (s *LayeredGroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.GroupGetGroupSyncable(s.TmpContext, groupID, syncableID, syncableType)
@@ -377,11 +389,12 @@ func (s *LayeredGroupStore) GetAllGroupSyncablesByGroupPage(groupID string, sync
 	})
 }
 
-func (s *LayeredGroupStore) SaveGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel {
+func (s *LayeredGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupSaveGroupSyncable(s.TmpContext, groupSyncable)
+		return supplier.GroupUpdateGroupSyncable(s.TmpContext, groupSyncable)
 	})
 }
+
 func (s *LayeredGroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.GroupDeleteGroupSyncable(s.TmpContext, groupID, syncableID, syncableType)

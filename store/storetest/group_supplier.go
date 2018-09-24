@@ -39,7 +39,7 @@ func testGroupStoreSave(t *testing.T, ss store.Store) {
 	}
 
 	// Happy path
-	res1 := <-ss.Group().Save(g1)
+	res1 := <-ss.Group().Create(g1)
 	assert.Nil(t, res1.Err)
 	d1 := res1.Data.(*model.Group)
 	assert.Len(t, d1.Id, 26)
@@ -57,14 +57,14 @@ func testGroupStoreSave(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Type:        model.GroupTypeLdap,
 	}
-	res2 := <-ss.Group().Save(g2)
+	res2 := <-ss.Group().Create(g2)
 	assert.Nil(t, res2.Data)
 	assert.NotNil(t, res2.Err)
 	assert.Equal(t, res2.Err.Id, "model.group.name.app_error")
 
 	g2.Name = model.NewId()
 	g2.DisplayName = ""
-	res3 := <-ss.Group().Save(g2)
+	res3 := <-ss.Group().Create(g2)
 	assert.Nil(t, res3.Data)
 	assert.NotNil(t, res3.Err)
 	assert.Equal(t, res3.Err.Id, "model.group.display_name.app_error")
@@ -78,7 +78,7 @@ func testGroupStoreSave(t *testing.T, ss store.Store) {
 		CreateAt:    1,
 		UpdateAt:    1,
 	}
-	res4 := <-ss.Group().Save(g3)
+	res4 := <-ss.Group().Create(g3)
 	assert.Nil(t, res4.Data)
 	assert.Equal(t, res4.Err.Id, "store.sql_group.save.missing.app_error")
 
@@ -88,14 +88,14 @@ func testGroupStoreSave(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Type:        model.GroupTypeLdap,
 	}
-	res5 := <-ss.Group().Save(g4)
+	res5 := <-ss.Group().Create(g4)
 	assert.Nil(t, res5.Err)
 	g4b := &model.Group{
 		Name:        g4.Name,
 		DisplayName: model.NewId(),
 		Type:        model.GroupTypeLdap,
 	}
-	res5b := <-ss.Group().Save(g4b)
+	res5b := <-ss.Group().Create(g4b)
 	assert.Nil(t, res5b.Data)
 	assert.Equal(t, res5b.Err.Id, "store.sql_group.save.insert.app_error")
 
@@ -137,7 +137,7 @@ func testGroupStoreSave(t *testing.T, ss store.Store) {
 	origDeleteAt := d1.DeleteAt
 	d1.CreateAt = model.GetMillis()
 	d1.DeleteAt = model.GetMillis()
-	res6 := <-ss.Group().Save(d1)
+	res6 := <-ss.Group().Update(d1)
 	d2 := res6.Data.(*model.Group)
 	assert.Equal(t, origCreateAt, d2.CreateAt)
 	assert.Equal(t, origDeleteAt, d2.DeleteAt)
@@ -152,7 +152,7 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 		Type:        model.GroupTypeLdap,
 		RemoteId:    model.NewId(),
 	}
-	res1 := <-ss.Group().Save(g1)
+	res1 := <-ss.Group().Create(g1)
 	assert.Nil(t, res1.Err)
 	d1 := res1.Data.(*model.Group)
 	assert.Len(t, d1.Id, 26)
@@ -190,7 +190,7 @@ func testGroupStoreGetAllPage(t *testing.T, ss store.Store) {
 			Type:        model.GroupTypeLdap,
 		}
 		groups = append(groups, g)
-		res := <-ss.Group().Save(g)
+		res := <-ss.Group().Create(g)
 		assert.Nil(t, res.Err)
 	}
 
@@ -237,7 +237,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 		Type:        model.GroupTypeLdap,
 	}
 
-	res1 := <-ss.Group().Save(g1)
+	res1 := <-ss.Group().Create(g1)
 	assert.Nil(t, res1.Err)
 	d1 := res1.Data.(*model.Group)
 	assert.Len(t, d1.Id, 26)
@@ -284,7 +284,7 @@ func testGroupCreateMember(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Type:        model.GroupTypeLdap,
 	}
-	res1 := <-ss.Group().Save(g1)
+	res1 := <-ss.Group().Create(g1)
 	assert.Nil(t, res1.Err)
 	group := res1.Data.(*model.Group)
 
@@ -326,7 +326,7 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Type:        model.GroupTypeLdap,
 	}
-	res1 := <-ss.Group().Save(g1)
+	res1 := <-ss.Group().Create(g1)
 	assert.Nil(t, res1.Err)
 	group := res1.Data.(*model.Group)
 
@@ -382,7 +382,7 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Type:        model.GroupTypeLdap,
 	}
-	res1 := <-ss.Group().Save(g1)
+	res1 := <-ss.Group().Create(g1)
 	assert.Nil(t, res1.Err)
 	group := res1.Data.(*model.Group)
 
@@ -409,7 +409,7 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 		SyncableId: team.Id,
 		Type:       model.GSTeam,
 	}
-	res3 := <-ss.Group().SaveGroupSyncable(gt1)
+	res3 := <-ss.Group().CreateGroupSyncable(gt1)
 	assert.Nil(t, res3.Err)
 	groupTeam := res3.Data.(*model.GroupSyncable)
 
@@ -436,7 +436,7 @@ func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Type:        model.GroupTypeLdap,
 	}
-	res1 := <-ss.Group().Save(g)
+	res1 := <-ss.Group().Create(g)
 	assert.Nil(t, res1.Err)
 	group := res1.Data.(*model.Group)
 
@@ -460,7 +460,7 @@ func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 		team := res2.Data.(*model.Team)
 
 		// create groupteam
-		res3 := <-ss.Group().SaveGroupSyncable(&model.GroupSyncable{
+		res3 := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 			GroupId:    group.Id,
 			CanLeave:   true,
 			SyncableId: team.Id,
@@ -507,7 +507,7 @@ func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 
 func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 	// Invalid TeamID
-	res1 := <-ss.Group().SaveGroupSyncable(&model.GroupSyncable{
+	res1 := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    model.NewId(),
 		CanLeave:   true,
 		SyncableId: "x",
@@ -516,7 +516,7 @@ func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 	assert.Equal(t, res1.Err.Id, "model.group_syncable.team_id.app_error")
 
 	// Invalid GroupID
-	res2 := <-ss.Group().SaveGroupSyncable(&model.GroupSyncable{
+	res2 := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    "x",
 		CanLeave:   true,
 		SyncableId: model.NewId(),
@@ -525,7 +525,7 @@ func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 	assert.Equal(t, res2.Err.Id, "model.group_syncable.group_id.app_error")
 
 	// Invalid CanLeave/AutoAdd combo (both false)
-	res3 := <-ss.Group().SaveGroupSyncable(&model.GroupSyncable{
+	res3 := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    model.NewId(),
 		CanLeave:   false,
 		AutoAdd:    false,
@@ -540,7 +540,7 @@ func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Type:        model.GroupTypeLdap,
 	}
-	res4 := <-ss.Group().Save(g1)
+	res4 := <-ss.Group().Create(g1)
 	assert.Nil(t, res4.Err)
 	group := res4.Data.(*model.Group)
 
@@ -567,7 +567,7 @@ func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 		SyncableId: team.Id,
 		Type:       model.GSTeam,
 	}
-	res6 := <-ss.Group().SaveGroupSyncable(gt1)
+	res6 := <-ss.Group().CreateGroupSyncable(gt1)
 	assert.Nil(t, res6.Err)
 	d1 := res6.Data.(*model.GroupSyncable)
 	assert.Equal(t, gt1.SyncableId, d1.SyncableId)
@@ -580,7 +580,7 @@ func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 	// Update existing group team
 	gt1.CanLeave = false
 	gt1.AutoAdd = true
-	res7 := <-ss.Group().SaveGroupSyncable(gt1)
+	res7 := <-ss.Group().UpdateGroupSyncable(gt1)
 	assert.Nil(t, res7.Err)
 	d2 := res7.Data.(*model.GroupSyncable)
 	assert.False(t, d2.CanLeave)
@@ -589,7 +589,7 @@ func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 	// Update to invalid state
 	gt1.AutoAdd = false
 	gt1.CanLeave = false
-	res8 := <-ss.Group().SaveGroupSyncable(gt1)
+	res8 := <-ss.Group().UpdateGroupSyncable(gt1)
 	assert.Equal(t, res8.Err.Id, "model.group_syncable.invalid_state")
 
 	// Non-existent Group
@@ -600,7 +600,7 @@ func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 		SyncableId: team.Id,
 		Type:       model.GSTeam,
 	}
-	res9 := <-ss.Group().SaveGroupSyncable(gt2)
+	res9 := <-ss.Group().UpdateGroupSyncable(gt2)
 	assert.Equal(t, res9.Err.Id, "store.sql_group.save_group_team.save.app_error")
 
 	// Non-existent Team
@@ -611,7 +611,7 @@ func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 		SyncableId: model.NewId(),
 		Type:       model.GSTeam,
 	}
-	res10 := <-ss.Group().SaveGroupSyncable(gt3)
+	res10 := <-ss.Group().UpdateGroupSyncable(gt3)
 	assert.Equal(t, res10.Err.Id, "store.sql_group.save_group_team.save.app_error")
 
 	// Cannot update CreateAt or DeleteAt
@@ -619,7 +619,7 @@ func testSaveGroupSyncable(t *testing.T, ss store.Store) {
 	origDeleteAt := d1.DeleteAt
 	d1.CreateAt = model.GetMillis()
 	d1.DeleteAt = model.GetMillis()
-	res11 := <-ss.Group().SaveGroupSyncable(d1)
+	res11 := <-ss.Group().UpdateGroupSyncable(d1)
 	d3 := res11.Data.(*model.GroupSyncable)
 	assert.Equal(t, origCreateAt, d3.CreateAt)
 	assert.Equal(t, origDeleteAt, d3.DeleteAt)
@@ -632,7 +632,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Type:        model.GroupTypeLdap,
 	}
-	res1 := <-ss.Group().Save(g1)
+	res1 := <-ss.Group().Create(g1)
 	assert.Nil(t, res1.Err)
 	group := res1.Data.(*model.Group)
 
@@ -659,7 +659,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 		SyncableId: team.Id,
 		Type:       model.GSTeam,
 	}
-	res7 := <-ss.Group().SaveGroupSyncable(gt1)
+	res7 := <-ss.Group().CreateGroupSyncable(gt1)
 	assert.Nil(t, res7.Err)
 	groupTeam := res7.Data.(*model.GroupSyncable)
 

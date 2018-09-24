@@ -13,6 +13,38 @@ type GroupStore struct {
 	mock.Mock
 }
 
+// Create provides a mock function with given fields: group
+func (_m *GroupStore) Create(group *model.Group) store.StoreChannel {
+	ret := _m.Called(group)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(*model.Group) store.StoreChannel); ok {
+		r0 = rf(group)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// CreateGroupSyncable provides a mock function with given fields: groupSyncable
+func (_m *GroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) store.StoreChannel {
+	ret := _m.Called(groupSyncable)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(*model.GroupSyncable) store.StoreChannel); ok {
+		r0 = rf(groupSyncable)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // CreateMember provides a mock function with given fields: groupID, userID
 func (_m *GroupStore) CreateMember(groupID string, userID string) store.StoreChannel {
 	ret := _m.Called(groupID, userID)
@@ -141,8 +173,8 @@ func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncab
 	return r0
 }
 
-// Save provides a mock function with given fields: group
-func (_m *GroupStore) Save(group *model.Group) store.StoreChannel {
+// Update provides a mock function with given fields: group
+func (_m *GroupStore) Update(group *model.Group) store.StoreChannel {
 	ret := _m.Called(group)
 
 	var r0 store.StoreChannel
@@ -157,8 +189,8 @@ func (_m *GroupStore) Save(group *model.Group) store.StoreChannel {
 	return r0
 }
 
-// SaveGroupSyncable provides a mock function with given fields: groupSyncable
-func (_m *GroupStore) SaveGroupSyncable(groupSyncable *model.GroupSyncable) store.StoreChannel {
+// UpdateGroupSyncable provides a mock function with given fields: groupSyncable
+func (_m *GroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) store.StoreChannel {
 	ret := _m.Called(groupSyncable)
 
 	var r0 store.StoreChannel

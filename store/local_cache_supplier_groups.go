@@ -17,11 +17,8 @@ func (s *LocalCacheSupplier) handleClusterInvalidateGroup(msg *model.ClusterMess
 	}
 }
 
-func (s *LocalCacheSupplier) GroupSave(ctx context.Context, group *model.Group, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	if len(group.Id) != 0 {
-		defer s.doInvalidateCacheCluster(s.groupCache, group.Id)
-	}
-	return s.Next().GroupSave(ctx, group, hints...)
+func (s *LocalCacheSupplier) GroupCreate(ctx context.Context, group *model.Group, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupCreate(ctx, group, hints...)
 }
 
 func (s *LocalCacheSupplier) GroupGet(ctx context.Context, groupId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
@@ -40,6 +37,11 @@ func (s *LocalCacheSupplier) GroupGetAllPage(ctx context.Context, offset int, li
 	return s.Next().GroupGetAllPage(ctx, offset, limit, hints...)
 }
 
+func (s *LocalCacheSupplier) GroupUpdate(ctx context.Context, group *model.Group, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	defer s.doInvalidateCacheCluster(s.groupCache, group.Id)
+	return s.Next().GroupUpdate(ctx, group, hints...)
+}
+
 func (s *LocalCacheSupplier) GroupDelete(ctx context.Context, groupId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	defer s.doInvalidateCacheCluster(s.groupCache, groupId)
 	defer s.doClearCacheCluster(s.roleCache)
@@ -55,6 +57,10 @@ func (s *LocalCacheSupplier) GroupDeleteMember(ctx context.Context, groupID stri
 	return s.Next().GroupDeleteMember(ctx, groupID, userID, hints...)
 }
 
+func (s *LocalCacheSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupCreateGroupSyncable(ctx, groupSyncable, hints...)
+}
+
 func (s *LocalCacheSupplier) GroupGetGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	return s.Next().GroupGetGroupSyncable(ctx, groupID, syncableID, syncableType, hints...)
 }
@@ -63,8 +69,8 @@ func (s *LocalCacheSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Co
 	return s.Next().GroupGetAllGroupSyncablesByGroupPage(ctx, groupID, syncableType, offset, limit, hints...)
 }
 
-func (s *LocalCacheSupplier) GroupSaveGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupSaveGroupSyncable(ctx, groupSyncable, hints...)
+func (s *LocalCacheSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupUpdateGroupSyncable(ctx, groupSyncable, hints...)
 }
 
 func (s *LocalCacheSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
