@@ -468,8 +468,9 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 		return result
 	}
 
-	// Need to populate this because gorp won't scan it because it has a different column name (either TeamId or ChannelId).
+	// Need to populate these because gorp won't scan it because it has a different column name (either TeamId or ChannelId).
 	groupSyncable.SyncableId = syncableID
+	groupSyncable.Type = syncableType
 
 	time := model.GetMillis()
 	groupSyncable.DeleteAt = time
