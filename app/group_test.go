@@ -55,6 +55,7 @@ func TestCreateGroup(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Type:        model.GroupTypeLdap,
+		RemoteId:    model.NewId(),
 	}
 
 	if _, err := th.App.CreateGroup(group); err != nil {

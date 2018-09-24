@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-// TODO: Split tests from Save to Update and Create in accordance with refactor.
 func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("Create", func(t *testing.T) { testGroupStoreCreate(t, ss) })
 	t.Run("Get", func(t *testing.T) { testGroupStoreGet(t, ss) })
@@ -85,7 +84,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	}
 	res4 := <-ss.Group().Create(g3)
 	assert.Nil(t, res4.Data)
-	assert.Equal(t, res4.Err.Id, "store.sql_group.save.invalid_request")
+	assert.Equal(t, res4.Err.Id, "store.sql_group.create.invalid_group_id")
 
 	// Won't accept a duplicate name
 	g4 := &model.Group{
@@ -104,7 +103,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	}
 	res5b := <-ss.Group().Create(g4b)
 	assert.Nil(t, res5b.Data)
-	assert.Equal(t, res5b.Err.Id, "store.sql_group.save_group.commit_transaction.app_error")
+	assert.Equal(t, res5b.Err.Id, "store.sql_group.create.commit_error")
 
 	// Fields cannot be greater than max values
 	g5 := &model.Group{
@@ -172,7 +171,7 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 	// Get an invalid group
 	res3 := <-ss.Group().Get(model.NewId())
 	assert.NotNil(t, res3.Err)
-	assert.Equal(t, res3.Err.Id, "store.sql_group.get.app_error")
+	assert.Equal(t, res3.Err.Id, "store.sql_group.get.no_rows")
 }
 
 func testGroupStoreGetAllPage(t *testing.T, ss store.Store) {
@@ -312,7 +311,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		RemoteId:    model.NewId(),
 	})
-	assert.Equal(t, res6.Err.Id, "store.sql_group.update.app_error")
+	assert.Equal(t, res6.Err.Id, "store.sql_group.update.update_error")
 
 	// Cannot update CreateAt or DeleteAt
 	origCreateAt := d1.CreateAt
@@ -368,7 +367,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	// Try and delete a nonexistent group
 	res6 := <-ss.Group().Delete(model.NewId())
 	assert.NotNil(t, res6.Err)
-	assert.Equal(t, res6.Err.Id, "store.sql_group.get.app_error")
+	assert.Equal(t, res6.Err.Id, "store.sql_group.delete.no_rows")
 
 	// Cannot delete again
 	res8 := <-ss.Group().Delete(d1.Id)
@@ -407,15 +406,15 @@ func testGroupCreateMember(t *testing.T, ss store.Store) {
 
 	// Duplicate composite key (GroupId, UserId)
 	res4 := <-ss.Group().CreateMember(group.Id, user.Id)
-	assert.Equal(t, res4.Err.Id, "store.sql_group.save_member.exists.app_error")
+	assert.Equal(t, res4.Err.Id, "store.sql_group.create_member.unique_error")
 
 	// Invalid UserId
 	res5 := <-ss.Group().CreateMember(group.Id, model.NewId())
-	assert.Equal(t, res5.Err.Id, "store.sql_group.save_member.save.app_error")
+	assert.Equal(t, res5.Err.Id, "store.sql_group.create_member.save.insert_error")
 
 	// Invalid GroupId
 	res6 := <-ss.Group().CreateMember(model.NewId(), user.Id)
-	assert.Equal(t, res6.Err.Id, "store.sql_group.save_member.save.app_error")
+	assert.Equal(t, res6.Err.Id, "store.sql_group.create_member.save.insert_error")
 }
 
 func testGroupDeleteMember(t *testing.T, ss store.Store) {
@@ -459,19 +458,19 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 
 	// Delete with invalid UserId
 	res6 := <-ss.Group().DeleteMember(group.Id, strings.Repeat("x", 27))
-	assert.Equal(t, res6.Err.Id, "model.group_member.user_id.app_error")
+	assert.Equal(t, res6.Err.Id, "store.sql_group.delete_member.invalid_user_id")
 
 	// Delete with invalid GroupId
 	res7 := <-ss.Group().DeleteMember(strings.Repeat("x", 27), user.Id)
-	assert.Equal(t, res7.Err.Id, "model.group_member.group_id.app_error")
+	assert.Equal(t, res7.Err.Id, "store.sql_group.delete_member.invalid_group_id")
 
 	// Delete with non-existent User
 	res8 := <-ss.Group().DeleteMember(group.Id, model.NewId())
-	assert.Equal(t, res8.Err.Id, "store.sql_group.get_member.missing.app_error")
+	assert.Equal(t, res8.Err.Id, "store.sql_group.delete_member.no_rows")
 
 	// Delete non-existent Group
 	res9 := <-ss.Group().DeleteMember(model.NewId(), group.Id)
-	assert.Equal(t, res9.Err.Id, "store.sql_group.get_member.missing.app_error")
+	assert.Equal(t, res9.Err.Id, "store.sql_group.delete_member.no_rows")
 }
 
 func testCreateGroupSyncable(t *testing.T, ss store.Store) {
@@ -744,7 +743,7 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 		Type:       model.GSTeam,
 	}
 	res9 := <-ss.Group().UpdateGroupSyncable(gt2)
-	assert.Equal(t, res9.Err.Id, "store.sql_group.get_group_syncable.app_error")
+	assert.Equal(t, res9.Err.Id, "store.sql_group.update_group_syncable.no_rows")
 
 	// Non-existent Team
 	gt3 := &model.GroupSyncable{
@@ -755,7 +754,7 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 		Type:       model.GSTeam,
 	}
 	res10 := <-ss.Group().UpdateGroupSyncable(gt3)
-	assert.Equal(t, res10.Err.Id, "store.sql_group.get_group_syncable.app_error")
+	assert.Equal(t, res10.Err.Id, "store.sql_group.update_group_syncable.no_rows")
 
 	// Cannot update CreateAt or DeleteAt
 	origCreateAt := d1.CreateAt
@@ -812,19 +811,19 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 
 	// Invalid GroupId
 	res3 := <-ss.Group().DeleteGroupSyncable("x", groupTeam.SyncableId, model.GSTeam)
-	assert.Equal(t, res3.Err.Id, "store.sql_group.delete_group_syncable.group_id.invalid")
+	assert.Equal(t, res3.Err.Id, "store.sql_group.delete_group_syncable.invalid_group_id")
 
 	// Invalid TeamId
 	res4 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, "x", model.GSTeam)
-	assert.Equal(t, res4.Err.Id, "store.sql_group.delete_group_syncable.syncable_id.invalid")
+	assert.Equal(t, res4.Err.Id, "store.sql_group.delete_group_syncable.invalid_syncable_id")
 
 	// Non-existent Group
 	res5 := <-ss.Group().DeleteGroupSyncable(model.NewId(), groupTeam.SyncableId, model.GSTeam)
-	assert.Equal(t, res5.Err.Id, "store.sql_group.delete_group_syncable.app_error")
+	assert.Equal(t, res5.Err.Id, "store.sql_group.delete_group_syncable.no_rows")
 
 	// Non-existent Team
 	res6 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, string(model.NewId()), model.GSTeam)
-	assert.Equal(t, res6.Err.Id, "store.sql_group.delete_group_syncable.app_error")
+	assert.Equal(t, res6.Err.Id, "store.sql_group.delete_group_syncable.no_rows")
 
 	// Happy path...
 	res8 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GSTeam)
