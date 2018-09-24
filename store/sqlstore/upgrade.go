@@ -515,9 +515,11 @@ func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
 		os.Exit(EXIT_GENERIC_FAILURE)
 	}
 
-	sqlStore.CreateIndexIfNotExists("idx_groups_remote_id", "Groups", "RemoteId")
+	// sqlStore.CreateIndexIfNotExists("idx_groups_remote_id", "Groups", "RemoteId")
 	sqlStore.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
-	sqlStore.CreateUniqueIndexIfNotExists("ux_groups_type_remote_id", "Groups", []string{"Type", "RemoteId"})
+
+	// TODO: Is RemoteId too long to create this composite key constraint?
+	// sqlStore.CreateUniqueIndexIfNotExists("ux_groups_type_remote_id", "Groups", []string{"Type", "RemoteId"})
 
 	transaction, err := sqlStore.GetMaster().Begin()
 	if err != nil {

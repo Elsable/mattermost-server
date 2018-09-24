@@ -26,7 +26,7 @@ type GroupSyncable struct {
 	CreateAt   int64             `json:"create_at"`
 	DeleteAt   int64             `json:"delete_at"`
 	UpdateAt   int64             `json:"update_at"`
-	Type       GroupSyncableType `db:"-"`
+	Type       GroupSyncableType `db:"-" json:"type"`
 }
 
 func (syncable *GroupSyncable) IsValid() *AppError {

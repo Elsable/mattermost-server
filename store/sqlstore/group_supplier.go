@@ -45,7 +45,6 @@ func initSqlSupplierGroups(sqlStore SqlStore) {
 
 func (s *SqlSupplier) GroupCreate(ctx context.Context, group *model.Group, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
-	var err error
 
 	if len(group.Id) != 0 {
 		result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.sql_group.save.invalid_request", nil, "", http.StatusBadRequest)
@@ -58,9 +57,9 @@ func (s *SqlSupplier) GroupCreate(ctx context.Context, group *model.Group, hints
 	}
 
 	var transaction *gorp.Transaction
-
-	if transaction, err = s.GetMaster().Begin(); err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.sql_group.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	var tErr error
+	if transaction, tErr = s.GetMaster().Begin(); tErr != nil {
+		result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.sql_group.save.open_transaction.app_error", nil, tErr.Error(), http.StatusInternalServerError)
 		return result
 	}
 
@@ -74,17 +73,21 @@ func (s *SqlSupplier) GroupCreate(ctx context.Context, group *model.Group, hints
 	group.UpdateAt = group.CreateAt
 
 	if err := transaction.Insert(group); err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.sql_group.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return result
-	}
-
-	result.Data = group
-
-	if result.Err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
+			result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.sql_group.save.insert.unique_constraint", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.sql_group.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 		transaction.Rollback()
-	} else if err := transaction.Commit(); err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.sql_group.save_group.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else {
+		result.Data = group
 	}
+
+	if err := transaction.Commit(); err != nil {
+		result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.sql_group.save_group.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		result.Data = nil
+	}
+
 	return result
 }
 
@@ -92,7 +95,6 @@ func (s *SqlSupplier) GroupGet(ctx context.Context, groupId string, hints ...sto
 	result := store.NewSupplierResult()
 
 	var group *model.Group
-
 	if err := s.GetReplica().SelectOne(&group, "SELECT * from Groups WHERE Id = :Id", map[string]interface{}{"Id": groupId}); err != nil {
 		if err == sql.ErrNoRows {
 			result.Err = model.NewAppError("SqlGroupStore.Get", "store.sql_group.get.app_error", nil, "Id="+groupId+", "+err.Error(), http.StatusNotFound)
@@ -128,17 +130,16 @@ func (s *SqlSupplier) GroupUpdate(ctx context.Context, group *model.Group, hints
 	var retrievedGroup *model.Group
 	if err := s.GetMaster().SelectOne(&retrievedGroup, "SELECT * FROM Groups WHERE Id = :Id", map[string]interface{}{"Id": group.Id}); err != nil {
 		if err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.save.missing.app_error", nil, "id="+group.Id+","+err.Error(), http.StatusNotFound)
-			return result
+			result.Err = model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.update.missing.app_error", nil, "id="+group.Id+","+err.Error(), http.StatusNotFound)
+		} else {
+			result.Err = model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.update.app_error", nil, "id="+group.Id+","+err.Error(), http.StatusInternalServerError)
 		}
-		result.Err = model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.save.app_error", nil, "id="+group.Id+","+err.Error(), http.StatusInternalServerError)
 		return result
 	}
 
 	// Reset these properties, don't update them based on input
 	group.DeleteAt = retrievedGroup.DeleteAt
 	group.CreateAt = retrievedGroup.CreateAt
-
 	group.UpdateAt = model.GetMillis()
 
 	if err := group.IsValidForUpdate(); err != nil {
@@ -146,16 +147,17 @@ func (s *SqlSupplier) GroupUpdate(ctx context.Context, group *model.Group, hints
 		return result
 	}
 
-	if rowsChanged, err := s.GetMaster().Update(group); err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.save.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+	rowsChanged, err := s.GetMaster().Update(group)
+	if err != nil {
+		result.Err = model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return result
-	} else if rowsChanged != 1 {
-		result.Err = model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.save.update.app_error", nil, "no record to update", http.StatusInternalServerError)
+	}
+	if rowsChanged != 1 {
+		result.Err = model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.update.no_change", nil, "no record to update", http.StatusInternalServerError)
 		return result
 	}
 
 	result.Data = group
-
 	return result
 }
 
@@ -285,13 +287,21 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 	// Reset values that shouldn't be updatable by parameter
 	groupSyncable.DeleteAt = 0
 	groupSyncable.CreateAt = model.GetMillis()
-	groupSyncable.UpdateAt = groupSyncable.UpdateAt
+	groupSyncable.UpdateAt = groupSyncable.CreateAt
 
-	if err := s.GetMaster().Insert(groupSyncable); err != nil {
-		if IsUniqueConstraintError(err, []string{"GroupId", groupSyncable.Type.String() + "Id", "groupteams_pkey", "PRIMARY"}) {
-			result.Err = model.NewAppError("SqlGroupStore.CreateGroupSyncable", "store.sql_group.save_group_syncable.exists.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusBadRequest)
-			return result
-		}
+	insertStmt := fmt.Sprintf("INSERT INTO Group%ss (GroupId, %sId, CanLeave, AutoAdd, CreateAt, UpdateAt, DeleteAt) VALUES ('%s', '%s', %t, %t, %d, %d, %d)",
+		groupSyncable.Type.String(),
+		groupSyncable.Type.String(),
+		groupSyncable.GroupId,
+		groupSyncable.SyncableId,
+		groupSyncable.CanLeave,
+		groupSyncable.AutoAdd,
+		groupSyncable.CreateAt,
+		groupSyncable.UpdateAt,
+		groupSyncable.DeleteAt,
+	)
+
+	if _, err := s.GetMaster().Exec(insertStmt); err != nil {
 		result.Err = model.NewAppError("SqlGroupStore.CreateGroupSyncable", "store.sql_group.save_group_syncable.save.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
 	}
@@ -303,11 +313,10 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 func (s *SqlSupplier) GroupGetGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	var record interface{}
-
 	query := fmt.Sprintf("SELECT * from Group%[1]ss WHERE GroupId = :GroupId AND %[1]sId = :%[1]sId", syncableType.String())
 
-	if err := s.GetReplica().SelectOne(&record, query, map[string]interface{}{"GroupId": groupID, syncableType.String() + "Id": syncableID}); err != nil {
+	var groupSyncable *model.GroupSyncable
+	if err := s.GetReplica().SelectOne(&groupSyncable, query, map[string]interface{}{"GroupId": groupID, syncableType.String() + "Id": syncableID}); err != nil {
 		if err == sql.ErrNoRows {
 			result.Err = model.NewAppError("SqlGroupStore.Get", "store.sql_group.get_group_syncable.app_error", nil, "GroupId="+groupID+", SyncableId="+syncableID+", SyncableType="+syncableType.String()+", "+err.Error(), http.StatusNotFound)
 			return result
@@ -317,7 +326,10 @@ func (s *SqlSupplier) GroupGetGroupSyncable(ctx context.Context, groupID string,
 		}
 	}
 
-	result.Data = record
+	// Need to populate this because gorp won't scan it because it has a different column name (either TeamId or ChannelId).
+	groupSyncable.SyncableId = syncableID
+
+	result.Data = groupSyncable
 
 	return result
 }
@@ -325,12 +337,39 @@ func (s *SqlSupplier) GroupGetGroupSyncable(ctx context.Context, groupID string,
 func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, groupID string, syncableType model.GroupSyncableType, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	var groupSyncables []*model.GroupSyncable
+	type GroupSyncableScanner struct {
+		model.GroupSyncable
+		TeamId    string
+		ChannelId string
+	}
 
-	sqlQuery := fmt.Sprintf("SELECT * from Group%[1]s WHERE GroupId = :GroupId ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", syncableType.String())
+	var groupSyncableScanners []*GroupSyncableScanner
 
-	if _, err := s.GetReplica().Select(&groupSyncables, sqlQuery, map[string]interface{}{"GroupId": groupID, "Limit": limit, "Offset": offset}); err != nil {
+	sqlQuery := fmt.Sprintf("SELECT * from Group%[1]ss WHERE GroupId = :GroupId ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", syncableType.String())
+
+	if _, err := s.GetReplica().Select(&groupSyncableScanners, sqlQuery, map[string]interface{}{"GroupId": groupID, "Limit": limit, "Offset": offset}); err != nil {
 		result.Err = model.NewAppError("SqlGroupStore.GetAllGroupSyncablesByGroupPage", "store.sql_group.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	groupSyncables := []*model.GroupSyncable{}
+	for _, gsScan := range groupSyncableScanners {
+		gs := &model.GroupSyncable{
+			GroupId:  gsScan.GroupId,
+			CanLeave: gsScan.CanLeave,
+			AutoAdd:  gsScan.AutoAdd,
+			CreateAt: gsScan.CreateAt,
+			UpdateAt: gsScan.UpdateAt,
+			DeleteAt: gsScan.DeleteAt,
+		}
+		switch syncableType {
+		case model.GSTeam:
+			gs.SyncableId = gsScan.TeamId
+		case model.GSChannel:
+			gs.SyncableId = gsScan.ChannelId
+		default:
+			continue
+		}
+		groupSyncables = append(groupSyncables, gs)
 	}
 
 	result.Data = groupSyncables
@@ -341,10 +380,10 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, 
 func (s *SqlSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	selectQuery := fmt.Sprintf("SELECT * from Group%[1]ss WHERE GroupId = :GroupId AND %[1]sId = :%[1]sId", groupSyncable.Type.String())
+	selectQuery := fmt.Sprintf("SELECT * from Group%[1]ss WHERE GroupId = :GroupId AND %[1]sId = :SyncableId", groupSyncable.Type.String())
 
 	var retrievedGroupSyncable *model.GroupSyncable
-	if err := s.GetMaster().SelectOne(&retrievedGroupSyncable, selectQuery, map[string]interface{}{"GroupId": groupSyncable.GroupId, groupSyncable.Type.String(): groupSyncable.SyncableId}); err != nil {
+	if err := s.GetMaster().SelectOne(&retrievedGroupSyncable, selectQuery, map[string]interface{}{"GroupId": groupSyncable.GroupId, "SyncableId": groupSyncable.SyncableId}); err != nil {
 		if err != sql.ErrNoRows {
 			result.Err = model.NewAppError("SqlGroupStore.UpdateGroupSyncable", "store.sql_group.save_group_syncable.app_error", nil, "GroupId="+groupSyncable.GroupId+", SyncableId="+groupSyncable.SyncableId+", SyncableType="+groupSyncable.Type.String()+", "+err.Error(), http.StatusInternalServerError)
 			return result
@@ -354,18 +393,31 @@ func (s *SqlSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncabl
 		}
 	}
 
+	if err := groupSyncable.IsValid(); err != nil {
+		result.Err = err
+		return result
+	}
+
 	// Check if no update is required
 	if (retrievedGroupSyncable.AutoAdd == groupSyncable.AutoAdd) && (retrievedGroupSyncable.CanLeave == groupSyncable.CanLeave) {
 		result.Err = model.NewAppError("SqlGroupStore.UpdateGroupSyncable", "store.sql_group.save_group_syncable.save.no_changes", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId, http.StatusInternalServerError)
 		return result
 	}
 
+	// Need to populate this because gorp won't scan it because it has a different column name (either TeamId or ChannelId).
+	retrievedGroupSyncable.SyncableId = groupSyncable.SyncableId
+
 	// Reset these properties, don't update them based on input
 	groupSyncable.DeleteAt = retrievedGroupSyncable.DeleteAt
 	groupSyncable.CreateAt = retrievedGroupSyncable.CreateAt
 	groupSyncable.UpdateAt = model.GetMillis()
 
-	updateStmt := fmt.Sprintf("UPDATE Group%ss SET CanLeave = %t, AutoAdd = %t, UpdateAt = %d", groupSyncable.Type.String(), groupSyncable.CanLeave, groupSyncable.AutoAdd, groupSyncable.UpdateAt)
+	updateStmt := fmt.Sprintf("UPDATE Group%ss SET CanLeave = %t, AutoAdd = %t, UpdateAt = %d",
+		groupSyncable.Type.String(),
+		groupSyncable.CanLeave,
+		groupSyncable.AutoAdd,
+		groupSyncable.UpdateAt,
+	)
 
 	if _, err := s.GetMaster().Exec(updateStmt); err != nil {
 		result.Err = model.NewAppError("SqlGroupStore.UpdateGroupSyncable", "store.sql_group.save.update.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -384,15 +436,15 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 		return result
 	}
 
-	if !model.IsValidId(syncableID) {
-		result.Err = model.NewAppError("SqlGroupStore.DeleteGroupSyncable", "store.sql_group.delete_group_syncable.team_id.invalid", nil, "group_id="+groupID, http.StatusBadRequest)
+	if !model.IsValidId(string(syncableID)) {
+		result.Err = model.NewAppError("SqlGroupStore.DeleteGroupSyncable", "store.sql_group.delete_group_syncable.syncable_id.invalid", nil, "group_id="+groupID, http.StatusBadRequest)
 		return result
 	}
 
-	selectQuery := fmt.Sprintf("SELECT * from Group%[1]ss WHERE GroupId = :GroupId AND %[1]sId = :%[1]sId", syncableType.String())
+	selectQuery := fmt.Sprintf("SELECT * from Group%[1]ss WHERE GroupId = :GroupId AND %[1]sId = :SyncableId", syncableType.String())
 
-	var groupTeam *model.GroupSyncable
-	if err := s.GetReplica().SelectOne(&groupTeam, selectQuery, map[string]interface{}{"GroupId": groupID, syncableType.String(): syncableID}); err != nil {
+	var groupSyncable *model.GroupSyncable
+	if err := s.GetReplica().SelectOne(&groupSyncable, selectQuery, map[string]interface{}{"GroupId": groupID, "SyncableId": syncableID}); err != nil {
 		if err == sql.ErrNoRows {
 			result.Err = model.NewAppError("SqlGroupStore.DeleteGroupSyncable", "store.sql_group.delete_group_syncable.app_error", nil, "Id="+groupID+", "+err.Error(), http.StatusNotFound)
 		} else {
@@ -402,25 +454,33 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 		return result
 	}
 
-	if groupTeam.DeleteAt != 0 {
-		result.Err = model.NewAppError("SqlGroupStore.DeleteGroupSyncable", "store.sql_group.delete_group_syncable.already_deleted", nil, "group_id="+groupID+"team_id="+syncableID, http.StatusBadRequest)
+	if groupSyncable.DeleteAt != 0 {
+		result.Err = model.NewAppError("SqlGroupStore.DeleteGroupSyncable", "store.sql_group.delete_group_syncable.already_deleted", nil, "group_id="+groupID+"syncable_id="+syncableID, http.StatusBadRequest)
 		return result
 	}
+
+	// Need to populate this because gorp won't scan it because it has a different column name (either TeamId or ChannelId).
+	groupSyncable.SyncableId = syncableID
 
 	time := model.GetMillis()
-	groupTeam.DeleteAt = time
-	groupTeam.UpdateAt = time
+	groupSyncable.DeleteAt = time
+	groupSyncable.UpdateAt = time
 
-	if rowsChanged, err := s.GetMaster().Update(groupTeam); err != nil {
+	updateQuery := fmt.Sprintf("UPDATE Group%ss SET DeleteAt = %d, UpdateAt = %d WHERE GroupId = '%s' AND %sId = '%s'",
+		groupSyncable.Type.String(),
+		groupSyncable.DeleteAt,
+		groupSyncable.UpdateAt,
+		groupSyncable.GroupId,
+		groupSyncable.Type.String(),
+		groupSyncable.SyncableId,
+	)
+
+	if _, err := s.GetMaster().Exec(updateQuery); err != nil {
 		result.Err = model.NewAppError("SqlGroupStore.DeleteGroupSyncable", "store.sql_group.delete_group_syncable.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return result
-	} else if rowsChanged != 1 {
-		result.Err = model.NewAppError("SqlGroupStore.DeleteGroupSyncable", "store.sql_group.delete_group_syncable.update.app_error", nil, "no record to update", http.StatusInternalServerError)
-		return result
-	} else {
-		result.Data = groupTeam
 	}
 
+	result.Data = groupSyncable
 	return result
 }
 
