@@ -192,11 +192,14 @@ func createOrDeleteGroupMember(action int) func(*Context, http.ResponseWriter, *
 		}
 
 		var createOrDeleteF func(string, string) (*model.GroupMember, *model.AppError)
+		var successStatus int
 		switch action {
 		case apiGroupMemberActionCreate:
 			createOrDeleteF = c.App.CreateGroupMember
+			successStatus = http.StatusCreated
 		case apiGroupMemberActionDelete:
 			createOrDeleteF = c.App.DeleteGroupMember
+			successStatus = http.StatusOK
 		default:
 			return
 		}
@@ -207,7 +210,7 @@ func createOrDeleteGroupMember(action int) func(*Context, http.ResponseWriter, *
 			return
 		}
 
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(successStatus)
 
 		b, _ := json.Marshal(groupMember)
 
