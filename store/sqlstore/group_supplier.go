@@ -491,7 +491,7 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 	}
 
 	if rowsAffected, _ := sqlResult.RowsAffected(); rowsAffected == 0 {
-		result.Err = model.NewAppError("SqlGroupStore.DeleteGroupSyncable", "store.sql_group.delete_group_syncable.update.no_rows_affected", nil, "", http.StatusInternalServerError)
+		result.Err = model.NewAppError("SqlGroupStore.DeleteGroupSyncable", "store.sql_group.delete_group_syncable.no_rows_affected", nil, "", http.StatusInternalServerError)
 		return result
 	}
 
