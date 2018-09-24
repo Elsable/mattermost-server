@@ -63,14 +63,14 @@ func (group *Group) IsValidForCreate() *AppError {
 		return NewAppError("Group.IsValidForCreate", "model.group.type.app_error", map[string]interface{}{"ValidGroupTypes": strings.Join(groupTypes, ", ")}, "", http.StatusBadRequest)
 	}
 
-	if len(group.RemoteId) > GroupRemoteIdMaxLength || len(group.RemoteId) == 0 && group.DoesRequireRemoteId() {
+	if len(group.RemoteId) > GroupRemoteIdMaxLength || len(group.RemoteId) == 0 && group.RequiresRemoteId() {
 		return NewAppError("Group.IsValidForCreate", "model.group.remote_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
 }
 
-func (group *Group) DoesRequireRemoteId() bool {
+func (group *Group) RequiresRemoteId() bool {
 	for _, groupType := range groupTypesRequiringRemoteId {
 		if groupType == group.Type {
 			return true
@@ -95,18 +95,8 @@ func (group *Group) IsValidForUpdate() *AppError {
 	return nil
 }
 
-func (group *Group) ToJson() string {
-	b, _ := json.Marshal(group)
-	return string(b)
-}
-
 func GroupFromJson(data io.Reader) *Group {
 	var group *Group
 	json.NewDecoder(data).Decode(&group)
 	return group
-}
-
-func GroupsToJson(groups []*Group) string {
-	b, _ := json.Marshal(groups)
-	return string(b)
 }

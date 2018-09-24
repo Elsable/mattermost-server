@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -56,7 +57,10 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(group.ToJson()))
+
+	b, _ := json.Marshal(group)
+
+	w.Write(b)
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -76,7 +80,9 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(group.ToJson()))
+	b, _ := json.Marshal(group)
+
+	w.Write(b)
 }
 
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -91,7 +97,9 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.GroupsToJson(groups)))
+	b, _ := json.Marshal(groups)
+
+	w.Write(b)
 }
 
 func updateGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -124,8 +132,12 @@ func updateGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("")
-	w.Write([]byte(group.ToJson()))
+	// TODO: Is below necessary?
+	// c.LogAudit("")
+
+	b, _ := json.Marshal(group)
+
+	w.Write(b)
 }
 
 func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
