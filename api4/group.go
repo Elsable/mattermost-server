@@ -10,6 +10,11 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+const (
+	apiGroupMemberActionCreate = iota
+	apiGroupMemberActionDelete
+)
+
 func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("", api.ApiSessionRequired(createGroup)).Methods("POST")
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}", api.ApiSessionRequiredTrustRequester(getGroup)).Methods("GET")
@@ -17,8 +22,8 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}", api.ApiSessionRequired(updateGroup)).Methods("PUT")
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteGroup)).Methods("DELETE")
 
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members", api.ApiSessionRequired(createGroupMember)).Methods("POST")
-	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteGroupMember)).Methods("DELETE")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members", api.ApiSessionRequired(createOrDeleteGroupMember(apiGroupMemberActionCreate))).Methods("POST")
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(createOrDeleteGroupMember(apiGroupMemberActionDelete))).Methods("DELETE")
 
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(createGroupSyncable(model.GSTeam))).Methods("POST")
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(getGroupSyncables(model.GSTeam))).Methods("GET")
@@ -164,8 +169,51 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func createGroupMember(c *Context, w http.ResponseWriter, r *http.Request) {}
-func deleteGroupMember(c *Context, w http.ResponseWriter, r *http.Request) {}
+func createOrDeleteGroupMember(action int) func(*Context, http.ResponseWriter, *http.Request) {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+		c.RequireGroupId()
+		if c.Err != nil {
+			return
+		}
+
+		c.RequireUserId()
+		if c.Err != nil {
+			return
+		}
+
+		if c.App.License() == nil || !*c.App.License().Features.LDAP {
+			c.Err = model.NewAppError("Api4.CreateGroupMember", "api.group.create_group_member.license.error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			return
+		}
+
+		var createOrDeleteF func(string, string) (*model.GroupMember, *model.AppError)
+		switch action {
+		case apiGroupMemberActionCreate:
+			createOrDeleteF = c.App.CreateGroupMember
+		case apiGroupMemberActionDelete:
+			createOrDeleteF = c.App.DeleteGroupMember
+		default:
+			return
+		}
+
+		groupMember, err := createOrDeleteF(c.Params.GroupId, c.Params.UserId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
+
+		b, _ := json.Marshal(groupMember)
+
+		w.Write(b)
+	}
+}
 
 func createGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
 	return func(c *Context, w http.ResponseWriter, r *http.Request) {
